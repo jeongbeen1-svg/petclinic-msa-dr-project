@@ -6,6 +6,14 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 6.0"
     }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.0"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = ">= 2.14.0" # 최신 버전을 명시하여 오류 방지
+    }
   }
 
   # [부트스트랩 전략]: 최초 1회는 이 backend 블록을 주석 처리하고 로컬에서 apply 한 뒤,
@@ -27,6 +35,34 @@ provider "aws" {
       Organization = local.org
       Project      = local.project
       ManagedBy    = "Terraform"
+    }
+  }
+}
+
+# 쿠버네티스 프로바이더 정의
+# 방금 만든 EKS 클러스터의 주소와 인증서를 실시간으로 바인딩
+provider "kubernetes" {
+  host                   = module.workload.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.workload.cluster_ca)
+
+  # AWS 로그인이 완료된 WSL 환경에서 자격증명을 자동으로 연동하기 위한 설정
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    args        = ["eks", "get-token", "--cluster-name", module.workload.cluster_name]
+    command     = "aws"
+  }
+}
+
+provider "helm" {
+  kubernetes = {
+    # kubernetes 프로바이더 설정을 그대로 가져오도록 구성
+    host                   = module.workload.cluster_endpoint
+    cluster_ca_certificate = base64decode(module.workload.cluster_ca)
+    
+    exec = {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      args        = ["eks", "get-token", "--cluster-name", module.workload.cluster_name]
+      command     = "aws"
     }
   }
 }

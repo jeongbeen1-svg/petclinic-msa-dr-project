@@ -24,8 +24,8 @@ resource "aws_eks_cluster" "main" {
 
   vpc_config {
     subnet_ids              = var.private_subnet_ids
-    endpoint_private_access = true  # 실무 필수: 내부 보안망 강화
-    endpoint_public_access  = true  # 개발 편의상 퍼블릭 오픈 (WSL 접속용)
+    endpoint_private_access = true # 실무 필수: 내부 보안망 강화
+    endpoint_public_access  = true # 개발 편의상 퍼블릭 오픈 (WSL 접속용)
   }
 
   depends_on = [aws_iam_role_policy_attachment.cluster_policy]
@@ -58,10 +58,10 @@ resource "aws_iam_role" "node" {
 
 resource "aws_iam_role_policy_attachment" "node_policies" {
   for_each = toset([
-    "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy", # EC2 인스턴스가 출근할 수 있게 함
-    "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy", # 내부 파드에 IP 분배, 통신 가능하게 함
+    "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",          # EC2 인스턴스가 출근할 수 있게 함
+    "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",               # 내부 파드에 IP 분배, 통신 가능하게 함
     "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly", # 노드가 ECR에 접근해서 이미지 다운로드할 수 있게 함
-    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore" # 베스천 없이 파드 접속용 SSM 권한
+    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"        # 베스천 없이 파드 접속용 SSM 권한
   ])
   policy_arn = each.value
   role       = aws_iam_role.node.name
@@ -91,12 +91,12 @@ resource "aws_eks_node_group" "system" {
   subnet_ids      = var.private_subnet_ids
 
   scaling_config {
-    desired_size = 1
+    desired_size = 2
     max_size     = 3
     min_size     = 0
   }
 
-  instance_types = ["t3.medium"]
+  instance_types = ["t3.large"]
 
   # 템플릿을 노드 그룹에 연결
   launch_template {
