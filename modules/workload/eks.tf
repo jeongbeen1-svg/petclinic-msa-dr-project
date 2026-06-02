@@ -67,6 +67,23 @@ resource "aws_iam_role_policy_attachment" "node_policies" {
   role       = aws_iam_role.node.name
 }
 
+resource "aws_launch_template" "eks_nodes" {
+  name_prefix = "${local.namespace}-node-template"
+
+  # 매우 중요: EC2 인스턴스가 켜질 때 'Name' 태그를 명시적으로 지정
+  tag_specifications {
+    resource_type = "instance"
+
+    tags = merge(local.common_tags, {
+      Name = "${local.namespace}-eks-system-node"
+    })
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 resource "aws_eks_node_group" "system" {
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = "system-nodes"
@@ -80,6 +97,17 @@ resource "aws_eks_node_group" "system" {
   }
 
   instance_types = ["t3.medium"]
+
+  # 템플릿을 노드 그룹에 연결
+  launch_template {
+    id      = aws_launch_template.eks_nodes.id
+    version = aws_launch_template.eks_nodes.latest_version
+  }
+
+  # 노드 그룹 자체에도 태그를 유지
+  tags = merge(local.common_tags, {
+    Name = "${local.namespace}-eks-node-group"
+  })
 
   depends_on = [aws_iam_role_policy_attachment.node_policies]
 }
