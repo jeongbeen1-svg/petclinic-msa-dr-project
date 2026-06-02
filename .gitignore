@@ -1,0 +1,5 @@
+# 2. 제외할 목록을 담은 .gitignore 파일 생성
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
