@@ -1,0 +1,37 @@
+locals {
+  org         = "tf-core-ej"
+  project     = "test"
+  environment = "dev"
+
+  namespace = "${local.org}-${local.project}-${local.environment}"
+
+  bastion = {
+    instance_type = "t3.micro"
+    allowed_cidrs = ["0.0.0.0/0"] # 보안을 위해 실제 사무실/집 IP 대역으로 제한
+  }
+
+  # assumed-role ARN을 정규 IAM Role ARN으로 변환하는 로컬 변수
+  # sts:AssumedRole  → arn:aws:iam::<acct>:role/<role-name>
+  account_id = data.aws_caller_identity.current.account_id
+  caller_arn = data.aws_caller_identity.current.arn
+
+  # assumed-role ARN 정규화 (예: arn:aws:sts::XXXX:assumed-role/MyRole/session)
+  is_assumed_role = can(regex("assumed-role", local.caller_arn))
+  normalized_arn = local.is_assumed_role ? (
+    "arn:aws:iam::${local.account_id}:role/${regex("assumed-role/([^/]+)/", local.caller_arn)[0]}"
+  ) : local.caller_arn
+
+  # Bastion Role도 동일한 정규화 로직 적용
+  bastion_raw_arn    = module.workload.bastion_role_arn
+  is_bastion_assumed = can(regex("assumed-role", local.bastion_raw_arn))
+  normalized_bastion_arn = local.is_bastion_assumed ? (
+    "arn:aws:iam::${local.account_id}:role/${regex("assumed-role/([^/]+)/", local.bastion_raw_arn)[0]}"
+  ) : local.bastion_raw_arn
+
+  # aws-auth에 등록할 추가 IAM 엔트리 (변수 + 현재 호출자 자동 포함)
+  all_admin_arns = distinct(concat(
+    var.additional_admin_arns,
+    [local.normalized_arn],
+    [local.normalized_bastion_arn]
+  ))
+}
