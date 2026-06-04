@@ -23,69 +23,87 @@ locals {
   ecr_registry = "906336681755.dkr.ecr.ap-northeast-2.amazonaws.com"
 }
 
-# 3. 헬름을 통한 일괄 배포 (공통 차트나 큐브 공식 차트가 없을 경우, 쿠버네티스 표준 마이크로서비스 형태 배포)
-# 테스트용 및 범용으로 가장 많이 쓰이는 oci 기반 헬름 기본 템플릿(정석은 본인 헬름차트나 k8s_manifest 사용)
-# 여기서는 이해를 돕기 위해 쿠버네티스 네이티브 리소스로 선언적인 배포 예시를 작성합니다.
-
+# 3. 배포 리소스 정의
 resource "kubernetes_deployment_v1" "petclinic" {
   for_each = local.petclinic_services
 
   metadata {
     name      = each.value
     namespace = kubernetes_namespace.petclinic.metadata[0].name
-    labels = {
-      app = each.value
-    }
+    labels = { app = each.value }
   }
 
   spec {
-    replicas = 1 # 처음엔 1대로 시작하고, 나중에 카펜터+HPA 연동 시 유연하게 조절
-
-    selector {
-      match_labels = {
-        app = each.value
-      }
-    }
+    replicas = 1
+    selector { match_labels = { app = each.value } }
 
     template {
-      metadata {
-        labels = {
-          app = each.value
-        }
-      }
+      metadata { labels = { app = each.value } }
 
       spec {
         container {
           image = "${local.ecr_registry}/petclinic_msa_1:${each.value}"
           name  = each.value
 
-          # 스프링 부트 애플리케이션 내부 포트 (기본 구조에 맞춰 포트 포워딩 세팅 필요)
+          # 포트 설정
           port {
-            container_port = each.value == "api-gateway" ? 8080 : (each.value == "config-server" ? 8888 : 8082) 
+            container_port = each.value == "api-gateway" ? 8080 : (each.value == "config-server" ? 8888 : 8082)
           }
 
-          # 시스템 자원 할당 (카펜터가 이 값을 보고 노드를 동적으로 띄웁니다!)
-          resources {
-            limits = {
-              cpu    = "500m"
-              memory = "768Mi"
-            }
-            requests = {
-              cpu    = "250m"
-              memory = "512Mi"
-            }
-          }
-
-          # Spring Cloud MSA 환경을 위한 환경 변수 주입 주석 예시
+          # 1. 공통 환경 변수
           env {
             name  = "SPRING_PROFILES_ACTIVE"
             value = "docker"
           }
+
+          dynamic "env" {
+            for_each = each.value == "genai-service" ? [1] : []
+            content {
+              name  = "SPRING_AI_OPENAI_API_KEY"
+              value_from {
+                secret_key_ref {
+                  name = kubernetes_secret.genai_secrets.metadata[0].name
+                  key  = "SPRING_AI_OPENAI_API_KEY"
+                }
+              }
+            }
+          }
+
+          dynamic "env" {
+            for_each = each.value == "genai-service" ? [1] : []
+            content {
+              name  = "SPRING_AI_OPENAI_BASE_URL"
+              value = "https://api.groq.com/openai"
+            }
+          }
+          # ... 기존 env 설정 아래에 추가 ...
+          dynamic "env" {
+            for_each = each.value == "genai-service" ? [1] : []
+            content {
+              name  = "SPRING_AI_OPENAI_CHAT_OPTIONS_MODEL"
+              value = "llama-3.3-70b-versatile"
+            }
+          }
+          
         }
       }
     }
   }
 }
+
+resource "kubernetes_secret" "genai_secrets" {
+  metadata {
+    name      = "genai-secrets"
+    namespace = kubernetes_namespace.petclinic.metadata[0].name
+  }
+
+  data = {
+    "SPRING_AI_OPENAI_API_KEY" = "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"
+  }
+
+  type = "Opaque"
+}
+
 
 # 4. 내부 통신을 위한 쿠버네티스 서비스(ClusterIP) 생성
 resource "kubernetes_service_v1" "petclinic" {
@@ -101,18 +119,17 @@ resource "kubernetes_service_v1" "petclinic" {
       app = each.value
     }
 
-    # 예시: apps.tf 내의 deployment와 service 포트 지정 부분 수정
-  port {
-    port = each.value == "api-gateway" ? 8080 : (
-         each.value == "config-server" ? 8888 : (
-         each.value == "discovery-server" ? 8761 : 8082)
-  )
-    target_port = each.value == "api-gateway" ? 8080 : (
-                each.value == "config-server" ? 8888 : (
-                each.value == "discovery-server" ? 8761 : 8082)
-  )
-}
+    port {
+      port = each.value == "api-gateway" ? 8080 : (
+           each.value == "config-server" ? 8888 : (
+           each.value == "discovery-server" ? 8761 : 8082)
+      )
+      target_port = each.value == "api-gateway" ? 8080 : (
+                    each.value == "config-server" ? 8888 : (
+                    each.value == "discovery-server" ? 8761 : 8082)
+      )
+    }
 
-    type = "ClusterIP" # 내부 통신용, 나중에 최외곽 api-gateway만 Ingress나 ALB로 노출
+    type = "ClusterIP"
   }
 }
