@@ -4,6 +4,8 @@ locals {
   environment = "dev"
 
   namespace = "${local.org}-${local.project}-${local.environment}"
+  # 추후 버킷 생성 코드 구현 시 제거함
+  bucket_name = "${local.namespace}-tfstate-backup"
 
   bastion = {
     instance_type = "t3.micro"
@@ -21,17 +23,10 @@ locals {
     "arn:aws:iam::${local.account_id}:role/${regex("assumed-role/([^/]+)/", local.caller_arn)[0]}"
   ) : local.caller_arn
 
-  # Bastion Role도 동일한 정규화 로직 적용
-  bastion_raw_arn    = module.workload.bastion_role_arn
-  is_bastion_assumed = can(regex("assumed-role", local.bastion_raw_arn))
-  normalized_bastion_arn = local.is_bastion_assumed ? (
-    "arn:aws:iam::${local.account_id}:role/${regex("assumed-role/([^/]+)/", local.bastion_raw_arn)[0]}"
-  ) : local.bastion_raw_arn
 
   # aws-auth에 등록할 추가 IAM 엔트리 (변수 + 현재 호출자 자동 포함)
   all_admin_arns = distinct(concat(
     var.additional_admin_arns,
-    [local.normalized_arn],
-    [local.normalized_bastion_arn]
+    [local.normalized_arn]
   ))
 }

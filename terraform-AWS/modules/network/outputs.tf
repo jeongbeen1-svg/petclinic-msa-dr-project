@@ -24,5 +24,13 @@ output "subnet" {
       id         = aws_subnet.private_1.id
       cidr_block = aws_subnet.private_1.cidr_block
     }
+    (local.subnet_private[2].name) = {
+      id         = aws_subnet.private_2.id
+      cidr_block = aws_subnet.private_2.cidr_block
+    }
+    (local.subnet_private[3].name) = {
+      id         = aws_subnet.private_3.id
+      cidr_block = aws_subnet.private_3.cidr_block
+    }
   }
 }

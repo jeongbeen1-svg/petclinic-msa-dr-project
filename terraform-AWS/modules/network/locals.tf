@@ -35,6 +35,18 @@ locals {
       availability_zone       = "ap-northeast-2c"
       cidr_block              = "172.31.8.0/22"
       map_public_ip_on_launch = false
+    },
+    {
+      name                    = "private-a-db"
+      availability_zone       = "ap-northeast-2a"
+      cidr_block              = "172.31.16.0/22"
+      map_public_ip_on_launch = false
+    },
+    {
+      name                    = "private-c-db"
+      availability_zone       = "ap-northeast-2c"
+      cidr_block              = "172.31.32.0/22"
+      map_public_ip_on_launch = false
     }
   ]
 

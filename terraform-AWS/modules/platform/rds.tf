@@ -1,0 +1,69 @@
+resource "aws_db_instance" "petclinic_db" {
+  # 서비스별로 DB를 분리하기 위해 고유 이름을 지정
+  # 여기서는 예시로 하나를 생성하지만, MSA 서비스별로 이 블록을 복사하거나 
+  # for_each를 사용하여 여러 개를 관리할 수 있음
+  identifier = "petclinic-db-instance"
+
+  # 사양 설정
+  engine            = "mysql"
+  engine_version    = "8.0"
+  instance_class    = "db.t3.micro" # 학습/소규모 운영에 적합
+  allocated_storage = 20            # 최소 용량 20GB
+  storage_type      = "gp2"
+
+  # 백업 설정
+  backup_retention_period = 7             # 7일간 백업 보관
+  backup_window           = "03:00-04:00" # 백업 수행 시간
+
+  # 인증 설정 (실무에선 var 변수 사용 필수)
+  username = "admin"
+  password = "data1234!" # 보안상 실제론 secret/변수 처리하세요
+  db_name  = "petclinic"
+
+  # 네트워크 및 보안
+  db_subnet_group_name   = aws_db_subnet_group.db_subnet.name
+  vpc_security_group_ids = [aws_security_group.db_sg.id]
+  skip_final_snapshot    = true  # 프로젝트 테스트용이면 true, 운영은 false
+  publicly_accessible    = false # DB는 외부에서 직접 접근 불가하게!
+
+  tags = {
+    Name = "${local.namespace}-petclinic-mysql"
+  }
+}
+
+# RDS가 위치할 서브넷 그룹 (Private 서브넷 권장)
+resource "aws_db_subnet_group" "db_subnet" {
+  name       = "${local.namespace}-petclinic-db-subnet-group"
+  subnet_ids = [local.private_subnet_ids[0], local.private_subnet_ids[1]]
+}
+
+# DB 전용 보안 그룹: EKS 클러스터 내의 노드들만 접근 허용
+resource "aws_security_group" "db_sg" {
+  name   = "${local.namespace}-petclinic-db-sg"
+  vpc_id = local.vpc_id
+
+  ingress {
+    from_port = 3306
+    to_port   = 3306
+    protocol  = "tcp"
+    # EKS 노드들의 보안 그룹 ID를 지정하여 통신 허용
+    security_groups = [local.node_security_group_id]
+  }
+
+  # Lambda 함수의 접근도 허용
+  ingress {
+    from_port       = 3306
+    to_port         = 3306
+    protocol        = "tcp"
+    security_groups = [aws_security_group.lambda_sg.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = { Name = "${local.namespace}-petclinic-db-sg" }
+}

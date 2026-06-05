@@ -20,12 +20,12 @@ resource "aws_security_group" "eks_cluster" {
   vpc_id      = var.vpc_id
   description = "EKS Cluster Control Plane SG"
 
-  # Bastion으로부터의 443 포트 접근 허용
+  # Bastion에서 EKS API 서버로 접근 허용
   ingress {
     from_port       = 443
     to_port         = 443
     protocol        = "tcp"
-    security_groups = [aws_security_group.bastion_sg.id] # Bastion 보안 그룹 ID를 참조
+    security_groups = [aws_security_group.bastion_sg.id]
     description     = "Allow Bastion to access EKS API"
   }
 
@@ -37,6 +37,16 @@ resource "aws_security_group" "eks_cluster" {
   }
 
   tags = { Name = "${local.cluster_name}-cluster-sg" }
+}
+
+resource "aws_security_group_rule" "eks_cluster_api_from_nodes" {
+  type                     = "ingress"
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.eks_cluster.id
+  source_security_group_id = aws_security_group.eks_nodes.id
+  description              = "Allow worker nodes to access EKS API"
 }
 
 # 노드용 보안 그룹 (데이터 플레인)
@@ -99,7 +109,7 @@ resource "aws_eks_cluster" "main" {
   role_arn = aws_iam_role.cluster.arn
 
   vpc_config {
-    subnet_ids              = var.private_subnet_ids
+    subnet_ids              = local.private_subnet_ids
     security_group_ids      = [aws_security_group.eks_cluster.id]
     endpoint_private_access = true # 실무 필수: 내부 보안망 강화
     endpoint_public_access  = true # 개발 편의상 퍼블릭 오픈 (WSL 접속용)
@@ -121,7 +131,7 @@ resource "aws_eks_cluster" "main" {
 resource "aws_eks_access_entry" "admin" {
   cluster_name = aws_eks_cluster.main.name
 
-  for_each      = toset(local.all_admin_arns)
+  for_each      = local.admin_arns_map
   principal_arn = each.value
   type          = "STANDARD"
 }
@@ -129,8 +139,27 @@ resource "aws_eks_access_entry" "admin" {
 resource "aws_eks_access_policy_association" "admin" {
   cluster_name = aws_eks_cluster.main.name
 
-  for_each      = toset(local.all_admin_arns)
+  for_each      = local.admin_arns_map
   principal_arn = each.value
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+
+  access_scope {
+    type = "cluster"
+  }
+}
+
+# bastion의 종속성 때문에 따로 관리, bastion이 생성된 후에 EKS 접근 권한 부여
+resource "aws_eks_access_entry" "bastion" {
+  count         = 1
+  cluster_name  = aws_eks_cluster.main.name
+  principal_arn = local.normalized_bastion_arn
+  type          = "STANDARD"
+}
+
+resource "aws_eks_access_policy_association" "bastion" {
+  count         = 1
+  cluster_name  = aws_eks_cluster.main.name
+  principal_arn = local.normalized_bastion_arn
   policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
 
   access_scope {
@@ -201,7 +230,7 @@ resource "aws_eks_node_group" "system" {
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = "system-nodes"
   node_role_arn   = aws_iam_role.node.arn
-  subnet_ids      = var.private_subnet_ids
+  subnet_ids      = local.private_subnet_ids
 
   scaling_config {
     desired_size = 2

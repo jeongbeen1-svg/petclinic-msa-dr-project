@@ -4,3 +4,7 @@
 *.tfstate.*
 *.terraform.lock.hcl
 *.pem
+# Lambda 관련 파일 무시
+# **/lambda_package/
+# **/lambda_layer/
+# **/*lambda*.zip

@@ -1,5 +1,7 @@
 # 펫클리닉 애플리케이션들을 담을 독립된 네임스페이스 생성
 resource "kubernetes_namespace" "petclinic" {
+  depends_on = [aws_eks_node_group.system]
+
   metadata {
     name = "petclinic"
   }
@@ -9,10 +11,12 @@ resource "kubernetes_namespace" "petclinic" {
 resource "kubernetes_deployment_v1" "petclinic" {
   for_each = local.petclinic_services
 
+  wait_for_rollout = false
+
   metadata {
     name      = each.value
     namespace = kubernetes_namespace.petclinic.metadata[0].name
-    labels = { app = each.value }
+    labels    = { app = each.value }
   }
 
   spec {
@@ -41,7 +45,7 @@ resource "kubernetes_deployment_v1" "petclinic" {
           dynamic "env" {
             for_each = each.value == "genai-service" ? [1] : []
             content {
-              name  = "SPRING_AI_OPENAI_API_KEY"
+              name = "SPRING_AI_OPENAI_API_KEY"
               value_from {
                 secret_key_ref {
                   name = kubernetes_secret.genai_secrets.metadata[0].name
@@ -66,7 +70,7 @@ resource "kubernetes_deployment_v1" "petclinic" {
               value = "llama-3.3-70b-versatile"
             }
           }
-          
+
         }
       }
     }
@@ -104,12 +108,12 @@ resource "kubernetes_service_v1" "petclinic" {
 
     port {
       port = each.value == "api-gateway" ? 8080 : (
-           each.value == "config-server" ? 8888 : (
-           each.value == "discovery-server" ? 8761 : 8082)
+        each.value == "config-server" ? 8888 : (
+        each.value == "discovery-server" ? 8761 : 8082)
       )
       target_port = each.value == "api-gateway" ? 8080 : (
-                    each.value == "config-server" ? 8888 : (
-                    each.value == "discovery-server" ? 8761 : 8082)
+        each.value == "config-server" ? 8888 : (
+        each.value == "discovery-server" ? 8761 : 8082)
       )
     }
 
