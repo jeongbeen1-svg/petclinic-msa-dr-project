@@ -8,6 +8,7 @@ from datetime import datetime
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+# 데이터가 있는 경우에만 s3에 업로드됩니다
 def lambda_handler(event, context):
     conn = None
     try:

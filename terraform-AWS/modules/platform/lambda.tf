@@ -10,6 +10,9 @@ resource "aws_security_group" "lambda_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # 람다가 완전히 삭제된 후에 보안 그룹이 삭제되도록 의존성 주입
+  depends_on = [aws_lambda_function.dr_transfer]
+
   tags = { Name = "${var.namespace}-lambda_sg" }
 }
 
@@ -66,6 +69,7 @@ resource "aws_iam_role_policy" "lambda_logs_policy" {
 }
 
 # VPC 내 Lambda 실행 권한 (ENI 생성)
+# 이 방식이 삭제를 지연시키는 원인이라서 추후에 rds proxy 사용 등 다른 방식 사용 권장
 resource "aws_iam_role_policy" "lambda_vpc_policy" {
   name = "${var.namespace}-lambda_vpc_policy"
   role = aws_iam_role.lambda_exec.id
@@ -111,10 +115,12 @@ resource "aws_lambda_function" "dr_transfer" {
   }
 
   # Lambda를 VPC 내에 배치 (RDS 접근 가능하게)
-  vpc_config {
-    subnet_ids         = var.private_subnet_ids
-    security_group_ids = [aws_security_group.lambda_sg.id]
-  }
+  # vpc에 넣지 않는 방법을 찾아야 할 듯
+  # 일단은 이거 없어서 작동은 안 됨
+  # vpc_config {
+  #   subnet_ids         = var.private_subnet_ids
+  #   security_group_ids = [aws_security_group.lambda_sg.id]
+  # }
 
   # Lambda Layer (pymysql 라이브러리)
   layers = [aws_lambda_layer_version.python_deps.arn]
@@ -134,6 +140,7 @@ resource "aws_lambda_layer_version" "python_deps" {
 resource "aws_cloudwatch_event_rule" "rds_backup" {
   name                = "${var.namespace}-rds_backup_daily"
   description         = "RDS 데이터를 매일 S3에 백업"
+  # 현재 3분마다 백업 생성되도록 설정 (수동 lambda 트리거 가능하므로 수정해도 됨)
   schedule_expression = "cron(0/3 * * * ? *)"
 }
 

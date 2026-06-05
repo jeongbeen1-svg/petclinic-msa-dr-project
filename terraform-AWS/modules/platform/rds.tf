@@ -42,22 +42,6 @@ resource "aws_security_group" "db_sg" {
   name   = "${local.namespace}-petclinic-db-sg"
   vpc_id = local.vpc_id
 
-  ingress {
-    from_port = 3306
-    to_port   = 3306
-    protocol  = "tcp"
-    # EKS 노드들의 보안 그룹 ID를 지정하여 통신 허용
-    security_groups = [local.node_security_group_id]
-  }
-
-  # Lambda 함수의 접근도 허용
-  ingress {
-    from_port       = 3306
-    to_port         = 3306
-    protocol        = "tcp"
-    security_groups = [aws_security_group.lambda_sg.id]
-  }
-
   egress {
     from_port   = 0
     to_port     = 0
@@ -66,4 +50,26 @@ resource "aws_security_group" "db_sg" {
   }
 
   tags = { Name = "${local.namespace}-petclinic-db-sg" }
+}
+
+# EKS 노드 접근 허용 규칙
+resource "aws_security_group_rule" "db_ingress_eks" {
+  type                     = "ingress"
+  from_port                = 3306
+  to_port                  = 3306
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.db_sg.id
+  source_security_group_id = local.node_security_group_id
+  description              = "Allow EKS nodes to access RDS"
+}
+
+# Lambda 접근 허용 규칙
+resource "aws_security_group_rule" "db_ingress_lambda" {
+  type                     = "ingress"
+  from_port                = 3306
+  to_port                  = 3306
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.db_sg.id
+  source_security_group_id = aws_security_group.lambda_sg.id
+  description              = "Allow Lambda to access RDS"
 }

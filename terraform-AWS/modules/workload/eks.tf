@@ -20,15 +20,6 @@ resource "aws_security_group" "eks_cluster" {
   vpc_id      = var.vpc_id
   description = "EKS Cluster Control Plane SG"
 
-  # Bastion에서 EKS API 서버로 접근 허용
-  ingress {
-    from_port       = 443
-    to_port         = 443
-    protocol        = "tcp"
-    security_groups = [aws_security_group.bastion_sg.id]
-    description     = "Allow Bastion to access EKS API"
-  }
-
   egress {
     from_port   = 0
     to_port     = 0
@@ -39,6 +30,18 @@ resource "aws_security_group" "eks_cluster" {
   tags = { Name = "${local.cluster_name}-cluster-sg" }
 }
 
+# 클러스터 규칙 1: Bastion -> EKS API
+resource "aws_security_group_rule" "eks_cluster_api_from_bastion" {
+  type              = "ingress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  security_group_id = aws_security_group.eks_cluster.id
+  source_security_group_id = aws_security_group.bastion_sg.id
+  description       = "Allow Bastion to access EKS API"
+}
+
+# 클러스터 규칙 2: Nodes -> EKS API
 resource "aws_security_group_rule" "eks_cluster_api_from_nodes" {
   type                     = "ingress"
   from_port                = 443
@@ -55,39 +58,6 @@ resource "aws_security_group" "eks_nodes" {
   vpc_id      = var.vpc_id
   description = "EKS Node SG"
 
-  # 노드 간 통신
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
-  }
-
-  # 컨트롤 플레인 → 노드
-  ingress {
-    from_port       = 1025
-    to_port         = 65535
-    protocol        = "tcp"
-    security_groups = [aws_security_group.eks_cluster.id]
-  }
-
-  ingress {
-    from_port       = 443
-    to_port         = 443
-    protocol        = "tcp"
-    security_groups = [aws_security_group.bastion_sg.id]
-    description     = "mgmt kubectl access"
-  }
-
-  # MGMT -> NodePort 인바운드 그룹
-  ingress {
-    from_port       = 30000
-    to_port         = 32767
-    protocol        = "tcp"
-    security_groups = [aws_security_group.bastion_sg.id] # Bastion 보안 그룹 ID를 참조
-    description     = "mgmt NodePort access"
-  }
-
   egress {
     from_port   = 0
     to_port     = 0
@@ -96,6 +66,48 @@ resource "aws_security_group" "eks_nodes" {
   }
 
   tags = { Name = "${local.cluster_name}-node-sg" }
+}
+
+# 노드 규칙 1: 노드 간 통신 (Self)
+resource "aws_security_group_rule" "nodes_self" {
+  type              = "ingress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  security_group_id = aws_security_group.eks_nodes.id
+  self              = true
+}
+
+# 노드 규칙 2: 컨트롤 플레인 -> 노드
+resource "aws_security_group_rule" "nodes_from_cluster" {
+  type              = "ingress"
+  from_port         = 1025
+  to_port           = 65535
+  protocol          = "tcp"
+  security_group_id = aws_security_group.eks_nodes.id
+  source_security_group_id = aws_security_group.eks_cluster.id
+}
+
+# 노드 규칙 3: Bastion -> 노드 (kubectl)
+resource "aws_security_group_rule" "nodes_kubectl_from_bastion" {
+  type              = "ingress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  security_group_id = aws_security_group.eks_nodes.id
+  source_security_group_id = aws_security_group.bastion_sg.id
+  description       = "mgmt kubectl access"
+}
+
+# 노드 규칙 4: Bastion -> NodePort
+resource "aws_security_group_rule" "nodes_nodeport_from_bastion" {
+  type              = "ingress"
+  from_port         = 30000
+  to_port           = 32767
+  protocol          = "tcp"
+  security_group_id = aws_security_group.eks_nodes.id
+  source_security_group_id = aws_security_group.bastion_sg.id
+  description       = "mgmt NodePort access"
 }
 
 resource "aws_iam_role_policy_attachment" "cluster_policy" {
