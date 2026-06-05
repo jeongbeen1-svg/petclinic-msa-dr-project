@@ -3,7 +3,16 @@
 [AWS]
 -> 네트워크(vpc, subnet, igw, ngw) + EKS + Bastion Host가 생성됩니다.<br>
 [Azure]
--> 네트워크(vpc, subnet, ngw) + AKS가 생성됩니다.<br>
+-> 네트워크(vpc, subnet, ngw) + AKS가 생성됩니다.<br><br>
+
+-------------------------------<br>
+[EKS]
+namespace<br>
+* default<br>
+* argocd<br>
+* petclinic
+
+-------------------------------<br><br>
 
 [필수 수정 사항]
 * 버킷 수정
