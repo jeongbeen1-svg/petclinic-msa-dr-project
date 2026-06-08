@@ -1,7 +1,9 @@
-# # Terraform 상태파일 백업용 S3 버킷
-# resource "aws_s3_bucket" "terraform_backup" {
-#   bucket = "${var.namespace}-tfstate-backup"
-# }
+# Terraform 상태파일 백업용 S3 버킷
+resource "aws_s3_bucket" "terraform_backup" {
+  bucket = "${var.namespace}-tfstate-backup"
+  # s3 내부에 내용 있으면 안 지워지는데 지우고 싶으면 이 옵션 사용
+  # force_destroy = true
+}
 
 # # 버킷 버전 관리 (상태파일 백업/복구용)
 # resource "aws_s3_bucket_versioning" "terraform_backup" {

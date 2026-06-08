@@ -14,9 +14,16 @@ resource "aws_iam_role" "bastion_role" {
   tags = { Name = "${local.namespace}-bastion-ssm-role" }
 }
 
+# Bastion EC2가 SSM을 사용할 수 있도록 권한 연결
 resource "aws_iam_role_policy_attachment" "bastion_ssm" {
   role       = aws_iam_role.bastion_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+# Bastion EC2가 ECR을 사용할 수 있도록 권한 연결
+resource "aws_iam_role_policy_attachment" "bastion_ecr_push" {
+  role       = aws_iam_role.bastion_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
 }
 
 # Bastion에서 kubectl 사용을 위한 EKS 조회 권한
@@ -36,6 +43,11 @@ resource "aws_iam_role_policy" "bastion_eks" {
       Resource = "*"
       },
       {
+        Effect   = "Allow"
+        Action   = ["sts:GetCallerIdentity"]
+        Resource = "*"
+      },
+      {
         Effect = "Allow"
         Action = [
           "ssm:StartSession",
@@ -46,6 +58,19 @@ resource "aws_iam_role_policy" "bastion_eks" {
           "arn:aws:ec2:*:*:instance/*",
           "arn:aws:ssm:*:*:document/AWS-StartSSMSession"
         ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:PutImage",
+          "ecr:InitiateLayerUpload",
+          "ecr:UploadLayerPart",
+          "ecr:CompleteLayerUpload",
+          "ecr:BatchGetImage"
+        ]
+        Resource = "*"
       }
     ]
   })
@@ -111,7 +136,7 @@ resource "aws_instance" "bastion" {
   key_name = aws_key_pair.mgmt_key_pair.key_name
 
   # SSM Agent는 AL2023에 기본 설치됨
-  # kubectl + helm + git 추가 설치
+  # kubectl + helm + git + mariadb, maven, docker 추가 설치
   user_data = base64encode(<<-EOF
     #!/bin/bash
     set -e
@@ -125,7 +150,30 @@ resource "aws_instance" "bastion" {
     curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
     # git, jq
-    dnf install -y git jq awscli
+    sudo dnf install -y git jq awscli
+
+    # MariaDB 클라이언트 설치 (RDS 접속용)
+    sudo dnf install -y mariadb105
+    
+    # Maven이 java 기반이라 먼저 설치
+    sudo dnf install java-17-amazon-corretto-devel -y
+
+    # Maven 설치
+    sudo dnf install maven -y
+
+    # Docker 설치 (터미널 on/off에 상관 없이 활성화)
+    sudo dnf install docker -y
+    sudo systemctl start docker
+    sudo systemctl enable docker
+    newgrp docker
+
+    # kubeconfig 자동 생성
+    # 클러스터 이름을 변수로 지정 (실제 클러스터 이름으로 수정 필요)
+    CLUSTER_NAME="${aws_eks_cluster.main.name}"
+    REGION="ap-northeast-2"
+
+    # ec2-user로 명령 수행을 위해 sudo -u 사용
+    sudo -u ec2-user aws eks update-kubeconfig --region $REGION --name $CLUSTER_NAME
 
     echo "Bastion 초기화 완료" >> /var/log/bastion-init.log
   EOF

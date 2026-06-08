@@ -63,13 +63,25 @@ resource "aws_security_group_rule" "db_ingress_eks" {
   description              = "Allow EKS nodes to access RDS"
 }
 
+# Bastion 접근 허용 규칙
+resource "aws_security_group_rule" "db_ingress_bastion" {
+  type                     = "ingress"
+  from_port                = 3306
+  to_port                  = 3306
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.db_sg.id
+  source_security_group_id = local.bastion_security_group_id
+  description              = "Allow Bastion to access RDS"
+}
+
 # Lambda 접근 허용 규칙
-# resource "aws_security_group_rule" "db_ingress_lambda" {
-#   type                     = "ingress"
-#   from_port                = 3306
-#   to_port                  = 3306
-#   protocol                 = "tcp"
-#   security_group_id        = aws_security_group.db_sg.id
-#   source_security_group_id = aws_security_group.lambda_sg.id
-#   description              = "Allow Lambda to access RDS"
-# }
+resource "aws_security_group_rule" "db_ingress_lambda" {
+  type              = "ingress"
+  from_port         = 3306
+  to_port           = 3306
+  protocol          = "tcp"
+  security_group_id = aws_security_group.db_sg.id
+  # 이후 람다에 맞춰 줄일 예정
+  cidr_blocks = ["0.0.0.0/0"]
+  description = "Allow Lambda to access RDS"
+}

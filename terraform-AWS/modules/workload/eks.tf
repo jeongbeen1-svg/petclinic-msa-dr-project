@@ -32,13 +32,13 @@ resource "aws_security_group" "eks_cluster" {
 
 # 클러스터 규칙 1: Bastion -> EKS API
 resource "aws_security_group_rule" "eks_cluster_api_from_bastion" {
-  type              = "ingress"
-  from_port         = 443
-  to_port           = 443
-  protocol          = "tcp"
-  security_group_id = aws_security_group.eks_cluster.id
+  type                     = "ingress"
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.eks_cluster.id
   source_security_group_id = aws_security_group.bastion_sg.id
-  description       = "Allow Bastion to access EKS API"
+  description              = "Allow Bastion to access EKS API"
 }
 
 # 클러스터 규칙 2: Nodes -> EKS API
@@ -80,34 +80,34 @@ resource "aws_security_group_rule" "nodes_self" {
 
 # 노드 규칙 2: 컨트롤 플레인 -> 노드
 resource "aws_security_group_rule" "nodes_from_cluster" {
-  type              = "ingress"
-  from_port         = 1025
-  to_port           = 65535
-  protocol          = "tcp"
-  security_group_id = aws_security_group.eks_nodes.id
+  type                     = "ingress"
+  from_port                = 1025
+  to_port                  = 65535
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.eks_nodes.id
   source_security_group_id = aws_security_group.eks_cluster.id
 }
 
 # 노드 규칙 3: Bastion -> 노드 (kubectl)
 resource "aws_security_group_rule" "nodes_kubectl_from_bastion" {
-  type              = "ingress"
-  from_port         = 443
-  to_port           = 443
-  protocol          = "tcp"
-  security_group_id = aws_security_group.eks_nodes.id
+  type                     = "ingress"
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.eks_nodes.id
   source_security_group_id = aws_security_group.bastion_sg.id
-  description       = "mgmt kubectl access"
+  description              = "mgmt kubectl access"
 }
 
 # 노드 규칙 4: Bastion -> NodePort
 resource "aws_security_group_rule" "nodes_nodeport_from_bastion" {
-  type              = "ingress"
-  from_port         = 30000
-  to_port           = 32767
-  protocol          = "tcp"
-  security_group_id = aws_security_group.eks_nodes.id
+  type                     = "ingress"
+  from_port                = 30000
+  to_port                  = 32767
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.eks_nodes.id
   source_security_group_id = aws_security_group.bastion_sg.id
-  description       = "mgmt NodePort access"
+  description              = "mgmt NodePort access"
 }
 
 resource "aws_iam_role_policy_attachment" "cluster_policy" {
@@ -129,8 +129,10 @@ resource "aws_eks_cluster" "main" {
 
   # API와 ConfigMap 방식을 둘 다 지원하도록 설정
   access_config {
-    authentication_mode                         = "API_AND_CONFIG_MAP"
-    bootstrap_cluster_creator_admin_permissions = true
+    authentication_mode = "API_AND_CONFIG_MAP"
+    # entry 등록 오류 방지 false로 설정
+    # admin 권한을 AWS, tf가 둘 다 만드려고 해서 false로 처리, 실제론 true로 하는게 맞음
+    bootstrap_cluster_creator_admin_permissions = false
   }
 
   # 클러스터 로그 활성화
