@@ -64,12 +64,12 @@ resource "aws_security_group_rule" "db_ingress_eks" {
 }
 
 # Lambda 접근 허용 규칙
-resource "aws_security_group_rule" "db_ingress_lambda" {
-  type                     = "ingress"
-  from_port                = 3306
-  to_port                  = 3306
-  protocol                 = "tcp"
-  security_group_id        = aws_security_group.db_sg.id
-  source_security_group_id = aws_security_group.lambda_sg.id
-  description              = "Allow Lambda to access RDS"
-}
+# resource "aws_security_group_rule" "db_ingress_lambda" {
+#   type                     = "ingress"
+#   from_port                = 3306
+#   to_port                  = 3306
+#   protocol                 = "tcp"
+#   security_group_id        = aws_security_group.db_sg.id
+#   source_security_group_id = aws_security_group.lambda_sg.id
+#   description              = "Allow Lambda to access RDS"
+# }
