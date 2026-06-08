@@ -3,6 +3,7 @@
 [AWS]
 -> 네트워크(vpc, subnet, igw, ngw) + EKS + Bastion Host가 생성됩니다.<br>
 -> 현재 생성/삭제 지연때문에 app.tf 비활성화, lambda 동작 안하게 만들어뒀습니다.<br>
+  (람다 없는 버전을 사용해주세요)<br>
 -> 오류 발생 시 먼저 말씀해주세요 수정해서 다시 올리겠습니다.<br>
 [Azure]
 -> 네트워크(vpc, subnet, ngw) + AKS가 생성됩니다.<br><br>
