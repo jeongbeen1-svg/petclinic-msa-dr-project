@@ -17,3 +17,7 @@ variable "private_subnet_ids" {
 variable "node_security_group_id" {
   type = string
 }
+
+variable "bastion_security_group_id" {
+  type = string
+}

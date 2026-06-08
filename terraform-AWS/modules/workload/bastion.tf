@@ -37,6 +37,11 @@ resource "aws_iam_role_policy" "bastion_eks" {
       },
       {
         Effect = "Allow"
+        Action = ["sts:GetCallerIdentity"]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
         Action = [
           "ssm:StartSession",
           "ssm:SendCommand",
@@ -125,7 +130,18 @@ resource "aws_instance" "bastion" {
     curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
     # git, jq
-    dnf install -y git jq awscli
+    sudo dnf install -y git jq awscli
+
+    # MariaDB 클라이언트 설치 (RDS 접속용)
+    sudo dnf install -y mariadb105
+
+    # kubeconfig 자동 생성
+    # 클러스터 이름을 변수로 지정 (실제 클러스터 이름으로 수정 필요)
+    CLUSTER_NAME="${aws_eks_cluster.main.name}"
+    REGION="ap-northeast-2"
+
+    # ec2-user로 명령 수행을 위해 sudo -u 사용
+    sudo -u ec2-user aws eks update-kubeconfig --region $REGION --name $CLUSTER_NAME
 
     echo "Bastion 초기화 완료" >> /var/log/bastion-init.log
   EOF
