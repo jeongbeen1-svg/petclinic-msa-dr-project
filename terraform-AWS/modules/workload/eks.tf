@@ -131,8 +131,8 @@ resource "aws_eks_cluster" "main" {
   access_config {
     authentication_mode = "API_AND_CONFIG_MAP"
     # entry 등록 오류 방지 false로 설정
-    # admin 권한을 AWS, tf가 둘 다 만드려고 해서 오류남, 실제론 true로 하는게 맞음
-    bootstrap_cluster_creator_admin_permissions = true
+    # admin 권한을 AWS, tf가 둘 다 만드려고 해서 false로 처리, 실제론 true로 하는게 맞음
+    bootstrap_cluster_creator_admin_permissions = false
   }
 
   # 클러스터 로그 활성화
