@@ -15,10 +15,16 @@
 # }
 
 # 람다 파일 관련 코드
-data "archive_file" "lambda_zip" {
+data "archive_file" "lambda_backup_zip" {
   type        = "zip"
-  source_dir  = "${path.module}/lambda_package"
-  output_path = "${path.module}/lambda_package.zip"
+  source_dir  = "${path.module}/lambda_backup"
+  output_path = "${path.module}/lambda_backup.zip"
+}
+# 람다 파일 관련 코드
+data "archive_file" "lambda_transfer_zip" {
+  type        = "zip"
+  source_dir  = "${path.module}/lambda_transfer"
+  output_path = "${path.module}/lambda_transfer.zip"
 }
 
 # Lambda Layer (pymysql 라이브러리)

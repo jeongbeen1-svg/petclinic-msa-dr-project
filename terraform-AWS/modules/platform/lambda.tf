@@ -86,18 +86,18 @@ resource "aws_iam_role_policy" "lambda_vpc_policy" {
   })
 }
 
-# 람다 함수 정의
-resource "aws_lambda_function" "dr_transfer" {
-  filename      = data.archive_file.lambda_zip.output_path # 파이썬 코드를 zip으로 묶어서 업로드
-  function_name = "s3_to_azure_transfer"
+# 백업용 람다 (RDS -> S3)
+resource "aws_lambda_function" "dr_backup" {
+  filename      = data.archive_file.lambda_backup_zip.output_path # 파이썬 코드를 zip으로 묶어서 업로드
+  function_name = "rds_to_s3_backup"
   role          = aws_iam_role.lambda_exec.arn
-  handler       = "lambda_function.lambda_handler"
-  runtime       = "python3.9"
+  handler       = "lambda_function_backup.lambda_handler"
+  runtime       = "python3.10"
   timeout       = 30
   memory_size   = 256
 
   # zip 파일이 변경될 때마다 람다를 업데이트하도록 해줌
-  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+  source_code_hash = data.archive_file.lambda_backup_zip.output_base64sha256
 
   # Lambda 환경변수 (RDS 연결 정보)
   environment {
@@ -121,6 +121,38 @@ resource "aws_lambda_function" "dr_transfer" {
   layers = [aws_lambda_layer_version.python_deps.arn]
 }
 
+# 전송용 람다 (S3 -> Azure)
+resource "aws_lambda_function" "s3_to_azure" {
+  filename         = data.archive_file.lambda_transfer_zip.output_path
+  function_name    = "s3_to_azure_transfer"
+  role             = aws_iam_role.lambda_exec.arn
+  handler          = "lambda_function_transfer.lambda_handler"
+  runtime          = "python3.10"
+  timeout          = 30
+  memory_size      = 128
+  source_code_hash = data.archive_file.lambda_transfer_zip.output_base64sha256
+
+  environment {
+    # Secret Manager 사용 예정
+    variables = {
+      AZURE_CONNECTION_STRING = var.azure_conn_string
+    }
+  }
+
+  layers = [aws_lambda_layer_version.python_deps.arn]
+}
+
+# S3 이벤트 알림 설정 (S3에 파일 생성 시 전송 람다 호출)
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket = var.s3_bucket_name
+
+  lambda_function {
+    lambda_function_arn = aws_lambda_function.s3_to_azure.arn
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "rds-backup/" # 백업 폴더만 대상으로 함
+  }
+}
+
 # Lambda Layer 버전
 resource "aws_lambda_layer_version" "python_deps" {
   filename            = data.archive_file.lambda_layer.output_path
@@ -142,15 +174,25 @@ resource "aws_cloudwatch_event_rule" "rds_backup" {
 resource "aws_cloudwatch_event_target" "lambda_target" {
   rule      = aws_cloudwatch_event_rule.rds_backup.name
   target_id = "RDSBackupLambda"
-  arn       = aws_lambda_function.dr_transfer.arn
+  arn       = aws_lambda_function.dr_backup.arn
 }
 
+# CloudWatch 설정은 'rds_backup' 함수만 트리거
 resource "aws_lambda_permission" "allow_cloudwatch" {
   statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.dr_transfer.function_name
+  function_name = aws_lambda_function.dr_backup.function_name
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.rds_backup.arn
 
-  depends_on = [aws_lambda_function.dr_transfer]
+  depends_on = [aws_lambda_function.dr_backup]
+}
+
+# S3가 람다를 실행할 수 있게 권한 추가
+resource "aws_lambda_permission" "allow_s3" {
+  statement_id  = "AllowS3Invoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.s3_to_azure.function_name
+  principal     = "s3.amazonaws.com"
+  source_arn    = "arn:aws:s3:::${var.s3_bucket_name}"
 }

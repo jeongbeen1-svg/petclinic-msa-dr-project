@@ -21,3 +21,9 @@ variable "node_security_group_id" {
 variable "bastion_security_group_id" {
   type = string
 }
+
+variable "azure_conn_string" {
+  type        = string
+  description = "Azure Storage 연결 문자열"
+  sensitive   = true
+}
