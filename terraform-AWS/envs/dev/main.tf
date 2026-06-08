@@ -16,7 +16,7 @@ module "platform" {
     module.network.subnet["private-a-db"].id,
     module.network.subnet["private-c-db"].id
   ]
-  node_security_group_id = module.workload.node_security_group_id
+  node_security_group_id    = module.workload.node_security_group_id
   bastion_security_group_id = module.workload.bastion_security_group_id
 }
 

@@ -133,8 +133,8 @@ resource "aws_lambda_layer_version" "python_deps" {
 
 # CloudWatch Events 추가
 resource "aws_cloudwatch_event_rule" "rds_backup" {
-  name                = "${var.namespace}-rds_backup_daily"
-  description         = "RDS 데이터를 매일 S3에 백업"
+  name        = "${var.namespace}-rds_backup_daily"
+  description = "RDS 데이터를 매일 S3에 백업"
   # 현재 매월 1일에 트리거 작동됨 (수동 lambda 트리거 가능하므로 수정해도 됨)
   schedule_expression = "cron(0 0 1 * ? *)"
 }

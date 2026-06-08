@@ -36,8 +36,8 @@ resource "aws_iam_role_policy" "bastion_eks" {
       Resource = "*"
       },
       {
-        Effect = "Allow"
-        Action = ["sts:GetCallerIdentity"]
+        Effect   = "Allow"
+        Action   = ["sts:GetCallerIdentity"]
         Resource = "*"
       },
       {
