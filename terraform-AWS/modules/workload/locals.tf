@@ -28,7 +28,7 @@ locals {
   instance_type         = var.instance_type
   bastion_allowed_cidrs = var.bastion_allowed_cidrs
   admin_arns            = var.all_admin_arns
-  admin_arns_map        = { for arn in local.admin_arns : arn => arn if arn != null }
+  admin_arns_map        = { for arn in distinct(local.admin_arns) : arn => arn if arn != null }
 
   # 배포할 마이크로서비스 목록 정의
   petclinic_services = toset([

@@ -29,6 +29,4 @@ locals {
     var.additional_admin_arns,
     [local.normalized_arn]
   ))
-
-  azure_conn_string = "여기에 Azure 연결 문자열 삽입"
 }
