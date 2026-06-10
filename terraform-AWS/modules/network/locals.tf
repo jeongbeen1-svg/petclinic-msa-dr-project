@@ -1,6 +1,5 @@
 locals {
   namespace = var.namespace
-  location  = var.location
 
   vpc = {
     name                 = "main"

@@ -29,4 +29,7 @@ locals {
     var.additional_admin_arns,
     [local.normalized_arn]
   ))
+
+  # Azure VPN Gateway Public IP
+  azure_vpn_gateway_public_ip = "20.249.145.150"
 }

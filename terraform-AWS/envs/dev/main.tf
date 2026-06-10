@@ -2,7 +2,6 @@ module "network" {
   source = "../../modules/network"
 
   namespace = local.namespace
-  location  = local.location
 
   azure_vpn_gateway_public_ip = local.azure_vpn_gateway_public_ip
 }
