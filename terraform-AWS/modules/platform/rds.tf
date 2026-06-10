@@ -73,3 +73,14 @@ resource "aws_security_group_rule" "db_ingress_bastion" {
   source_security_group_id = local.bastion_security_group_id
   description              = "Allow Bastion to access RDS"
 }
+
+# DMS 접근 허용 규칙
+resource "aws_security_group_rule" "db_ingress_dms" {
+  type                     = "ingress"
+  from_port                = 3306
+  to_port                  = 3306
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.db_sg.id
+  source_security_group_id = "sg-0ac139f5762090de9"
+  description              = "Allow DMS to access RDS"
+}

@@ -18,3 +18,91 @@ resource "helm_release" "argocd" {
   # EKS 컴퓨터 노드 그룹(workload)이 100% 켜진 다음에 헬름 진입하도록 통제
   depends_on = [module.workload]
 }
+
+# resource "helm_release" "karpenter" {
+#   name             = "karpenter"
+#   repository       = "oci://public.ecr.aws/karpenter"
+#   chart            = "karpenter"
+#   version          = "1.0.0" # 설치하려는 정확한 버전으로 변경하세요
+#   namespace        = "karpenter"
+#   create_namespace = true
+
+#   # values 블록을 사용하여 설정을 한 번에 전달 (오류 방지)
+#   values = [
+#     yamlencode({
+#       settings = {
+#         clusterName = module.workload.cluster_name
+#       }
+#       serviceAccount = {
+#         annotations = {
+#           "eks.amazonaws.com/role-arn" = module.workload.karpenter_controller_role_arn
+#         }
+#       }
+#     })
+#   ]
+
+#   depends_on = [module.workload]
+# }
+
+# workload/autoscaler.tf
+
+resource "helm_release" "cluster_autoscaler" {
+  name             = "cluster-autoscaler"
+  repository       = "https://kubernetes.github.io/autoscaler"
+  chart            = "cluster-autoscaler"
+  version          = "9.37.0"
+  namespace        = "kube-system"
+
+  values = [
+    yamlencode({
+      autoDiscovery = {
+        clusterName = module.workload.cluster_name
+      }
+      awsRegion = "ap-northeast-2"
+      rbac = {
+        serviceAccount = {
+          create = true
+          name   = "cluster-autoscaler"
+          annotations = {
+            # 여기서 직접 IAM Role의 ARN을 주입합니다.
+            # 모듈 호출 단계를 거치지 않고 리소스에서 직접 가져오면 확실합니다.
+            "eks.amazonaws.com/role-arn" = module.workload.ca_role_arn
+          }
+        }
+      }
+      extraArgs = {
+        "balance-similar-node-groups"           = true
+        "skip-nodes-with-system-pods"           = false
+        "v"                                     = 4
+        "stderrthreshold"                       = "info"
+        "cloud-provider"                        = "aws"
+        "skip-nodes-with-local-storage"         = false
+        "expander"                              = "least-waste"
+        # 테스트용 속도 개선 옵션
+        "scan-interval"                         = "10s"
+        "scale-down-unneeded-time"              = "1m"
+        "scale-down-delay-after-add"            = "1m"
+        "scale-down-utilization-threshold"      = "0.5"
+      }
+
+    })
+  ]
+
+  depends_on = [module.workload]
+}
+
+resource "helm_release" "metrics_server" {
+  name       = "metrics-server"
+  repository = "https://kubernetes-sigs.github.io/metrics-server/"
+  chart      = "metrics-server"
+  namespace  = "kube-system"
+  version    = "3.12.0"
+
+  # values 속성을 사용하여 설정을 YAML 형식으로 정의
+  values = [
+    <<-EOF
+    args:
+      - --kubelet-insecure-tls
+    EOF
+  ]
+}

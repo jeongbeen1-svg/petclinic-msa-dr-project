@@ -9,3 +9,15 @@ variable "location" {
 variable "resource_group_name" {
   type = string
 }
+
+variable "dms_ip" {
+  type = string
+}
+
+variable "my_ip" {
+  type = string
+}
+
+variable "private_subnet_ids" {
+  type = list(string)
+}

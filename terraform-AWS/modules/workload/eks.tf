@@ -263,6 +263,8 @@ resource "aws_eks_node_group" "system" {
   # 노드 그룹 자체에도 태그를 유지
   tags = merge(local.common_tags, {
     Name = "${local.cluster_name}-node-group"
+    "k8s.io/cluster-autoscaler/enabled" = "true"
+    "k8s.io/cluster-autoscaler/${local.cluster_name}" = "owned"
   })
 
   # 업데이트나 생성 시 순서 보장
@@ -318,5 +320,113 @@ resource "aws_iam_role_policy" "node_alb" {
         Resource = "*"
       }
     ]
+  })
+}
+
+
+# 1. Karpenter Controller를 위한 IAM Role (OIDC 연동)
+resource "aws_iam_role" "karpenter_controller" {
+  name = "${local.cluster_name}-karpenter-controller"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Effect = "Allow"
+      Principal = { Federated = aws_iam_openid_connect_provider.eks.arn }
+      Condition = {
+        StringEquals = {
+          "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" = "system:serviceaccount:karpenter:karpenter"
+        }
+      }
+    }]
+  })
+}
+
+# 2. Karpenter Controller 정책 (최소 권한 원칙 반영)
+resource "aws_iam_role_policy" "karpenter_controller_policy" {
+  name = "${local.cluster_name}-karpenter-policy"
+  role = aws_iam_role.karpenter_controller.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "ec2:DescribeImages",
+          "ec2:RunInstances",
+          "ec2:DescribeSubnets",
+          "ec2:DescribeSecurityGroups",
+          "ec2:DescribeLaunchTemplates",
+          "ec2:DescribeInstances",
+          "ec2:DescribeInstanceTypes",
+          "ec2:DescribeInstanceTypeOfferings",
+          "ec2:DescribeAvailabilityZones",
+          "ec2:DeleteLaunchTemplate",
+          "ec2:CreateTags",
+          "ec2:CreateLaunchTemplate",
+          "ec2:CreateFleet",
+          "ec2:DescribeSpotPriceHistory",
+          "pricing:GetProducts",
+          "ec2:TerminateInstances",
+          "ssm:GetParameter", 
+          "eks:DescribeCluster"
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = "iam:PassRole"
+        Resource = aws_iam_role.node.arn
+        Condition = {
+          StringEquals = {
+            "iam:PassedToService" = "ec2.amazonaws.com"
+          }
+        }
+      }
+    ]
+  })
+}
+
+# CA용 IAM Role (IRSA 방식)
+resource "aws_iam_role" "cluster_autoscaler" {
+  name = "${local.cluster_name}-ca-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Effect = "Allow"
+      Principal = { Federated = aws_iam_openid_connect_provider.eks.arn }
+      Condition = {
+        StringEquals = {
+          "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" = "system:serviceaccount:kube-system:cluster-autoscaler"
+        }
+      }
+    }]
+  })
+}
+
+# CA 필수 정책
+resource "aws_iam_role_policy" "cluster_autoscaler_policy" {
+  name = "${local.cluster_name}-ca-policy"
+  role = aws_iam_role.cluster_autoscaler.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = [
+        "autoscaling:DescribeAutoScalingGroups",
+        "autoscaling:DescribeAutoScalingInstances",
+        "autoscaling:DescribeLaunchConfigurations",
+        "autoscaling:DescribeTags",
+        "autoscaling:SetDesiredCapacity",
+        "autoscaling:TerminateInstanceInAutoScalingGroup",
+        "ec2:DescribeLaunchTemplateVersions"
+      ]
+      Effect   = "Allow"
+      Resource = "*"
+    }]
   })
 }

@@ -33,5 +33,13 @@ output "subnet" {
       id         = azurerm_subnet.private_1.id
       cidr_block = azurerm_subnet.private_1.address_prefixes[0]
     }
+    (local.subnet_private[2].name) = {
+      id         = azurerm_subnet.private_db_0.id
+      cidr_block = azurerm_subnet.private_db_0.address_prefixes[0]
+    }
+    (local.subnet_private[3].name) = {
+      id         = azurerm_subnet.private_db_1.id
+      cidr_block = azurerm_subnet.private_db_1.address_prefixes[0]
+    }
   }
 }

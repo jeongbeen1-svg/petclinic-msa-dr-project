@@ -1,7 +1,7 @@
 resource "azurerm_kubernetes_cluster" "main" {
   name                = local.cluster_name
-  location            = var.location
-  resource_group_name = var.resource_group_name
+  location            = local.location
+  resource_group_name = local.resource_group_name
   dns_prefix          = replace(local.cluster_name, "_", "-")
 
   private_cluster_enabled = false
@@ -9,8 +9,8 @@ resource "azurerm_kubernetes_cluster" "main" {
   default_node_pool {
     name                 = "system"
     vm_size              = "Standard_D2s_v3"
-    vnet_subnet_id       = var.private_subnet_ids[0]
-    node_count           = 2
+    vnet_subnet_id       = local.private_subnet_ids[0]
+    node_count           = 1
     auto_scaling_enabled = true
     min_count            = 1
     max_count            = 3

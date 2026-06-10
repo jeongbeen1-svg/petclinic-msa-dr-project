@@ -1,7 +1,7 @@
 resource "azurerm_storage_account" "this" {
   name                     = substr(replace(lower("${local.namespace}storage"), "-", ""), 0, 24)
-  resource_group_name      = var.resource_group_name
-  location                 = var.location
+  resource_group_name      = local.resource_group_name
+  location                 = local.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 

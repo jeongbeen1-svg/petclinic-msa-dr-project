@@ -18,8 +18,8 @@ terraform {
 
   # Azure remote state backend. Create these first, or comment this block for local state.
   backend "azurerm" {
-    resource_group_name  = "tf-core-tfstate-jaebok1205"
-    storage_account_name = "tfcoretfstatejaebok1205"
+    resource_group_name  = "tf-core-ej-tfstate"
+    storage_account_name = "tfcoretfstateej"
     container_name       = "tfstate"
     key                  = "dev/test-azure/terraform.tfstate"
   }
