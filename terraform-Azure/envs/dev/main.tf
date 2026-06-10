@@ -5,13 +5,16 @@ module "network" {
   location  = local.location
 }
 
-# module "platform" {
-#   source = "../../modules/platform"
-#
-#   namespace           = local.namespace
-#   location            = local.location
-#   resource_group_name = module.network.resource_group_name
-# }
+module "platform" {
+  source = "../../modules/platform"
+
+  namespace           = local.namespace
+  location            = local.location
+  resource_group_name = module.network.resource_group_name
+
+  dms_ip = local.dms_ip
+  my_ip  = local.my_ip
+}
 
 module "workload" {
   source = "../../modules/workload"
