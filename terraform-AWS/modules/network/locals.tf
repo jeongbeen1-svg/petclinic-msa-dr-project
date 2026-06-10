@@ -1,5 +1,6 @@
 locals {
   namespace = var.namespace
+  location  = var.location
 
   vpc = {
     name                 = "main"
@@ -53,4 +54,6 @@ locals {
   natgw = {
     name = "main"
   }
+
+  azure_vpn_gateway_public_ip = var.azure_vpn_gateway_public_ip
 }
