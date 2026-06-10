@@ -17,3 +17,7 @@ variable "dms_ip" {
 variable "my_ip" {
   type = string
 }
+
+variable "private_subnet_ids" {
+  type = list(string)
+}

@@ -5,5 +5,6 @@ output "module" {
     workload = module.workload
   }
 
-  # sensitive = true
+  # 보안상 있어야 apply됨
+  sensitive = true
 }

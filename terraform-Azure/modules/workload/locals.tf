@@ -1,7 +1,7 @@
 locals {
   namespace = var.namespace
   location = var.location
-  resource_group_name = var.resource_group_names
+  resource_group_name = var.resource_group_name
 
   cluster_name = "${local.namespace}-aks"
   common_tags = {

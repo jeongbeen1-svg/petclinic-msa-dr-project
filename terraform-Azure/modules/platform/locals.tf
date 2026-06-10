@@ -11,4 +11,5 @@ locals {
 
   dms_ip = var.dms_ip
   my_ip  = var.my_ip
+  private_subnet_ids = var.private_subnet_ids
 }

@@ -19,7 +19,7 @@ locals {
       address_cidr = "10.0.1.0/24"
     },
     {
-      name         = "public-b"
+      name         = "public-c"
       address_cidr = "10.0.2.0/24"
     }
   ]
@@ -30,8 +30,16 @@ locals {
       address_cidr = "10.0.101.0/24"
     },
     {
-      name         = "private-b"
+      name         = "private-c"
       address_cidr = "10.0.102.0/24"
+    },
+    {
+      name         = "private-db-a"
+      address_cidr = "10.0.103.0/24"
+    },
+    {
+      name         = "private-db-c"
+      address_cidr = "10.0.104.0/24"
     }
   ]
 
