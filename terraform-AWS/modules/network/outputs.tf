@@ -34,3 +34,12 @@ output "subnet" {
     }
   }
 }
+
+output "azure_dns_forwarding" {
+  value = {
+    enabled              = local.azure_dns_forwarding.enabled
+    forwarded_domains    = local.azure_dns_forwarding.domains
+    resolver_endpoint_id = local.azure_dns_forwarding.enabled ? aws_route53_resolver_endpoint.azure_outbound[0].id : null
+    target_ips           = var.azure_private_dns_resolver_inbound_ips
+  }
+}

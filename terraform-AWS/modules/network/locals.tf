@@ -53,4 +53,12 @@ locals {
   natgw = {
     name = "main"
   }
+
+  azure_dns_forwarding = {
+    enabled = length(var.azure_private_dns_resolver_inbound_ips) > 0
+    domains = [
+      "mysql.database.azure.com",
+      "privatelink.mysql.database.azure.com"
+    ]
+  }
 }

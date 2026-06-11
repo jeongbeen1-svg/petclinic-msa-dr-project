@@ -91,7 +91,7 @@ resource "aws_key_pair" "mgmt_key_pair" {
 # 내 컴퓨터(WSL)에 프라이빗 키 파일(.pem)로 내보내기
 # 로컬 디렉터리에 자동으로 키 파일이 생성
 resource "local_file" "ssh_key" {
-  filename        = "${path.cwd}/${local.namespace}-mgmt-key.pem"
+  filename        = "${abspath(path.root)}/${local.namespace}-mgmt-key.pem"
   content         = tls_private_key.mgmt_key.private_key_pem
   file_permission = "0400" # 보안을 위해 읽기 권한만 부여
 }
@@ -137,7 +137,7 @@ resource "aws_instance" "bastion" {
 
   # SSM Agent는 AL2023에 기본 설치됨
   # kubectl + helm + git + mariadb, maven, docker 추가 설치
-  user_data = base64encode(<<-EOF
+  user_data = <<-EOF
     #!/bin/bash
     set -e
     dnf update -y
@@ -165,7 +165,7 @@ resource "aws_instance" "bastion" {
     sudo dnf install docker -y
     sudo systemctl start docker
     sudo systemctl enable docker
-    newgrp docker
+    sudo usermod -aG docker ec2-user
 
     # kubeconfig 자동 생성
     # 클러스터 이름을 변수로 지정 (실제 클러스터 이름으로 수정 필요)
@@ -177,7 +177,6 @@ resource "aws_instance" "bastion" {
 
     echo "Bastion 초기화 완료" >> /var/log/bastion-init.log
   EOF
-  )
 
   metadata_options {
     http_tokens   = "required" # IMDSv2 강제 (보안)

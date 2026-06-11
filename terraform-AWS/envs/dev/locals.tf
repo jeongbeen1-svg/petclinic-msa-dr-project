@@ -1,5 +1,5 @@
 locals {
-  org         = "tf-core-ej"
+  org         = "tf-core-jaebok1205"
   project     = "test"
   environment = "dev"
 
@@ -10,6 +10,15 @@ locals {
   bastion = {
     instance_type = "t3.micro"
     allowed_cidrs = ["0.0.0.0/0"] # 보안을 위해 실제 사무실/집 IP 대역으로 제한
+  }
+
+  azure_private_dns_resolver = {
+    inbound_ips = ["10.0.254.4"]
+  }
+
+  azure_vpn = {
+    vnet_cidr      = "10.0.0.0/16"
+    vpn_gateway_id = "vgw-03d67644087c4a930"
   }
 
   # assumed-role ARN을 정규 IAM Role ARN으로 변환하는 로컬 변수

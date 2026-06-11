@@ -21,3 +21,11 @@ output "bastion_security_group_id" {
 output "bastion_role_arn" {
   value = aws_iam_role.bastion_role.arn
 }
+
+output "bastion_public_ip" {
+  value = aws_instance.bastion.public_ip
+}
+
+output "bastion_public_dns" {
+  value = aws_instance.bastion.public_dns
+}

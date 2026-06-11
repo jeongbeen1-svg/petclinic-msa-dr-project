@@ -10,7 +10,6 @@ resource "azurerm_kubernetes_cluster" "main" {
     name                 = "system"
     vm_size              = "Standard_D2s_v3"
     vnet_subnet_id       = var.private_subnet_ids[0]
-    node_count           = 2
     auto_scaling_enabled = true
     min_count            = 1
     max_count            = 3
@@ -37,4 +36,11 @@ resource "azurerm_kubernetes_cluster" "main" {
   tags = merge(local.common_tags, {
     Name = local.cluster_name
   })
+
+  lifecycle {
+    precondition {
+      condition     = !startswith(local.namespace, "tf-core-ej-")
+      error_message = "Refusing to create legacy tf-core-ej AKS or AKS-managed MC_* resource groups from this Terraform stack."
+    }
+  }
 }

@@ -1,7 +1,10 @@
 module "network" {
   source = "../../modules/network"
 
-  namespace = local.namespace
+  namespace                              = local.namespace
+  azure_private_dns_resolver_inbound_ips = local.azure_private_dns_resolver.inbound_ips
+  azure_vnet_cidr                        = local.azure_vpn.vnet_cidr
+  azure_vpn_gateway_id                   = local.azure_vpn.vpn_gateway_id
 }
 
 module "platform" {

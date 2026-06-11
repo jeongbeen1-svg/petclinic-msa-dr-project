@@ -6,43 +6,22 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
+    local = {
+      source  = "hashicorp/local"
       version = "~> 2.0"
     }
-    helm = {
-      source  = "hashicorp/helm"
-      version = ">= 2.14.0"
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
     }
   }
 
-  # Azure remote state backend. Create these first, or comment this block for local state.
-  backend "azurerm" {
-    resource_group_name  = "tf-core-tfstate-jaebok1205"
-    storage_account_name = "tfcoretfstatejaebok1205"
-    container_name       = "tfstate"
-    key                  = "dev/test-azure/terraform.tfstate"
-  }
+  # Local state is used so this stack can be initialized before the Azure
+  # backend storage account exists.
 }
 
 provider "azurerm" {
   features {}
 
   resource_provider_registrations = "core"
-}
-
-provider "kubernetes" {
-  host                   = module.workload.cluster_endpoint
-  client_certificate     = base64decode(module.workload.client_certificate)
-  client_key             = base64decode(module.workload.client_key)
-  cluster_ca_certificate = base64decode(module.workload.cluster_ca)
-}
-
-provider "helm" {
-  kubernetes = {
-    host                   = module.workload.cluster_endpoint
-    client_certificate     = base64decode(module.workload.client_certificate)
-    client_key             = base64decode(module.workload.client_key)
-    cluster_ca_certificate = base64decode(module.workload.cluster_ca)
-  }
 }

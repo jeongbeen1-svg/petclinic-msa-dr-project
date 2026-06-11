@@ -6,7 +6,7 @@ resource "aws_db_instance" "petclinic_db" {
 
   # 사양 설정
   engine            = "mysql"
-  engine_version    = "8.0"
+  engine_version    = "8.4.8"
   instance_class    = "db.t3.micro" # 학습/소규모 운영에 적합
   allocated_storage = 20            # 최소 용량 20GB
   storage_type      = "gp2"
