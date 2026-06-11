@@ -1,8 +1,22 @@
+# 커스텀 파라미터 그룹 생성
+# Full Load + CDC인 경우 CDC 과정에서 필요한 작업임
+resource "aws_db_parameter_group" "mysql80_custom" {
+  name   = "mysql80-custom-params"
+  family = "mysql8.0" # RDS 인스턴스 버전과 정확히 일치해야 함
+
+  parameter {
+    name  = "binlog_format"
+    value = "ROW"
+  }
+}
+
 resource "aws_db_instance" "petclinic_db" {
   # 서비스별로 DB를 분리하기 위해 고유 이름을 지정
   # 여기서는 예시로 하나를 생성하지만, MSA 서비스별로 이 블록을 복사하거나 
   # for_each를 사용하여 여러 개를 관리할 수 있음
   identifier = "petclinic-db-instance"
+
+  parameter_group_name = aws_db_parameter_group.mysql80_custom.name
 
   # 사양 설정
   engine            = "mysql"
@@ -75,12 +89,12 @@ resource "aws_security_group_rule" "db_ingress_bastion" {
 }
 
 # DMS 접근 허용 규칙
-# resource "aws_security_group_rule" "db_ingress_dms" {
-#   type                     = "ingress"
-#   from_port                = 3306
-#   to_port                  = 3306
-#   protocol                 = "tcp"
-#   security_group_id        = aws_security_group.db_sg.id
-#   source_security_group_id = "sg-0ac139f5762090de9"
-#   description              = "Allow DMS to access RDS"
-# }
+resource "aws_security_group_rule" "db_ingress_dms" {
+  type                     = "ingress"
+  from_port                = 3306
+  to_port                  = 3306
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.db_sg.id
+  source_security_group_id = aws_security_group.dms_sg.id
+  description              = "Allow DMS to access RDS"
+}

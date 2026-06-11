@@ -31,9 +31,9 @@ resource "azurerm_private_endpoint" "sql_endpoint" {
 
 # SQL Database 생성 (사양 동일 수준: Basic 계층 또는 S0)
 resource "azurerm_mssql_database" "petclinic_db" {
-  name           = "petclinic"
-  server_id      = azurerm_mssql_server.petclinic_sql_server.id
-  collation      = "SQL_Latin1_General_CP1_CI_AS"
-  sku_name       = "Basic" # AWS db.t3.micro와 유사한 학습/소규모 사양
-  max_size_gb    = 2
+  name        = "petclinic"
+  server_id   = azurerm_mssql_server.petclinic_sql_server.id
+  collation   = "SQL_Latin1_General_CP1_CI_AS"
+  sku_name    = "Basic" # AWS db.t3.micro와 유사한 학습/소규모 사양
+  max_size_gb = 2
 }

@@ -21,3 +21,23 @@ variable "node_security_group_id" {
 variable "bastion_security_group_id" {
   type = string
 }
+
+variable "azure_ip_cidr_block" {
+  type = string
+}
+
+variable "private_subnets_dms" {
+  type = list(string)
+}
+
+variable "target_username" {
+  type = string
+}
+
+variable "target_password" {
+  type = string
+}
+
+variable "target_db_address" {
+  type = string
+}

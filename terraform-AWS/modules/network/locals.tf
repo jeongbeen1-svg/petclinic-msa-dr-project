@@ -47,6 +47,18 @@ locals {
       availability_zone       = "ap-northeast-2c"
       cidr_block              = "172.31.32.0/22"
       map_public_ip_on_launch = false
+    },
+    {
+      name                    = "private-a-dms"
+      availability_zone       = "ap-northeast-2a"
+      cidr_block              = "172.31.64.0/22"
+      map_public_ip_on_launch = false
+    },
+    {
+      name                    = "private-c-dms"
+      availability_zone       = "ap-northeast-2c"
+      cidr_block              = "172.31.128.0/22"
+      map_public_ip_on_launch = false
     }
   ]
 
@@ -55,4 +67,5 @@ locals {
   }
 
   azure_vpn_gateway_public_ip = var.azure_vpn_gateway_public_ip
+  azure_ip_cidr_block         = var.azure_ip_cidr_block
 }

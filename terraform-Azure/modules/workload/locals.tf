@@ -1,6 +1,6 @@
 locals {
-  namespace = var.namespace
-  location = var.location
+  namespace           = var.namespace
+  location            = var.location
   resource_group_name = var.resource_group_name
 
   cluster_name = "${local.namespace}-aks"
@@ -10,6 +10,6 @@ locals {
     ManagedBy   = "Terraform"
   }
 
-  vnet_id = var.vnet_id
+  vnet_id            = var.vnet_id
   private_subnet_ids = var.private_subnet_ids
 }

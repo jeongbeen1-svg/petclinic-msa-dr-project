@@ -106,6 +106,7 @@ resource "aws_security_group" "bastion_sg" {
   name   = "${local.namespace}-bastion-sg"
   vpc_id = local.vpc_id
 
+  # SSH
   ingress {
     from_port   = 22
     to_port     = 22
@@ -141,6 +142,11 @@ resource "aws_instance" "bastion" {
     #!/bin/bash
     set -e
     dnf update -y
+
+    # SSM 에이전트 설치
+    sudo dnf install -y amazon-ssm-agent
+    sudo systemctl enable amazon-ssm-agent
+    sudo systemctl start amazon-ssm-agent
 
     # kubectl 설치
     curl -LO "https://dl.k8s.io/release/$(curl -Ls https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"

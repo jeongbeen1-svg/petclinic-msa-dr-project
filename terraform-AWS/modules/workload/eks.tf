@@ -262,8 +262,8 @@ resource "aws_eks_node_group" "system" {
 
   # 노드 그룹 자체에도 태그를 유지
   tags = merge(local.common_tags, {
-    Name = "${local.cluster_name}-node-group"
-    "k8s.io/cluster-autoscaler/enabled" = "true"
+    Name                                              = "${local.cluster_name}-node-group"
+    "k8s.io/cluster-autoscaler/enabled"               = "true"
     "k8s.io/cluster-autoscaler/${local.cluster_name}" = "owned"
   })
 
@@ -331,8 +331,8 @@ resource "aws_iam_role" "karpenter_controller" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Action = "sts:AssumeRoleWithWebIdentity"
-      Effect = "Allow"
+      Action    = "sts:AssumeRoleWithWebIdentity"
+      Effect    = "Allow"
       Principal = { Federated = aws_iam_openid_connect_provider.eks.arn }
       Condition = {
         StringEquals = {
@@ -369,7 +369,7 @@ resource "aws_iam_role_policy" "karpenter_controller_policy" {
           "ec2:DescribeSpotPriceHistory",
           "pricing:GetProducts",
           "ec2:TerminateInstances",
-          "ssm:GetParameter", 
+          "ssm:GetParameter",
           "eks:DescribeCluster"
         ]
         Effect   = "Allow"
@@ -396,8 +396,8 @@ resource "aws_iam_role" "cluster_autoscaler" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Action = "sts:AssumeRoleWithWebIdentity"
-      Effect = "Allow"
+      Action    = "sts:AssumeRoleWithWebIdentity"
+      Effect    = "Allow"
       Principal = { Federated = aws_iam_openid_connect_provider.eks.arn }
       Condition = {
         StringEquals = {

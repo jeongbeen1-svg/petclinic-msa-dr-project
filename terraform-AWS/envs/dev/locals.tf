@@ -31,5 +31,11 @@ locals {
   ))
 
   # Azure VPN Gateway Public IP
-  # azure_vpn_gateway_public_ip = "20.249.145.150"
+  azure_vpn_gateway_public_ip = "20.214.223.186"
+  # Azure VNet CIDR Block
+  azure_ip_cidr_block = "10.1.0.0/16"
+
+  target_username   = "pet_admin"
+  target_password   = "data1234!"
+  target_db_address = "10.1.1.4"
 }
