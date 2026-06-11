@@ -3,7 +3,7 @@ module "network" {
 
   namespace = local.namespace
 
-  azure_vpn_gateway_public_ip = local.azure_vpn_gateway_public_ip
+  # azure_vpn_gateway_public_ip = local.azure_vpn_gateway_public_ip
 }
 
 module "platform" {

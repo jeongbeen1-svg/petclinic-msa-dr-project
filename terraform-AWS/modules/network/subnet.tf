@@ -79,10 +79,10 @@ resource "aws_route_table" "public_0" {
   }
 
   # azure로의 경로
-  route {
-    cidr_block = "10.0.0.0/16"
-    gateway_id = aws_vpn_gateway.vpn_gw.id
-  }
+  # route {
+  #   cidr_block = "10.0.0.0/16"
+  #   gateway_id = aws_vpn_gateway.vpn_gw.id
+  # }
 
   tags = {
     Name = "${local.namespace}-rtb-${local.subnet_public[0].name}"
@@ -97,10 +97,10 @@ resource "aws_route_table" "public_1" {
     gateway_id = aws_internet_gateway.this.id
   }
 
-  route {
-    cidr_block = "10.0.0.0/16"
-    gateway_id = aws_vpn_gateway.vpn_gw.id
-  }
+  # route {
+  #   cidr_block = "10.0.0.0/16"
+  #   gateway_id = aws_vpn_gateway.vpn_gw.id
+  # }
 
   tags = {
     Name = "${local.namespace}-rtb-${local.subnet_public[1].name}"

@@ -31,5 +31,5 @@ locals {
   ))
 
   # Azure VPN Gateway Public IP
-  azure_vpn_gateway_public_ip = "20.249.145.150"
+  # azure_vpn_gateway_public_ip = "20.249.145.150"
 }
