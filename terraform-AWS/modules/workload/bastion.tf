@@ -137,7 +137,7 @@ resource "aws_instance" "bastion" {
   key_name = aws_key_pair.mgmt_key_pair.key_name
 
   root_block_device {
-    volume_size = 8        # 8GB 설정
+    volume_size = 50
     volume_type = "gp3"    # 최신 실무 표준
     encrypted   = true     # 보안 권장 사항
   }

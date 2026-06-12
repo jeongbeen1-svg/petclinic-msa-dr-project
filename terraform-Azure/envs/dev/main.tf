@@ -3,6 +3,8 @@ module "network" {
 
   namespace = local.namespace
   location  = local.location
+
+  aws_vpc_cidr = local.aws_vpc_cidr
 }
 
 module "platform" {

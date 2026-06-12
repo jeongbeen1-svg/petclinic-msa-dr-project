@@ -8,6 +8,7 @@ variable "db_password" {
   type        = string
   sensitive   = true
   description = "Azure MySQL administrator password"
+  default = "data1234!"
 }
 
 variable "bastion_allowed_cidrs" {

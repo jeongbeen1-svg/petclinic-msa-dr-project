@@ -2,7 +2,7 @@
 # Full Load + CDC인 경우 CDC 과정에서 필요한 작업임
 resource "aws_db_parameter_group" "mysql80_custom" {
   name   = "mysql80-custom-params"
-  family = "mysql8.0" # RDS 인스턴스 버전과 정확히 일치해야 함
+  family = "mysql8.4" # RDS 인스턴스 버전과 정확히 일치해야 함
 
   parameter {
     name  = "binlog_format"

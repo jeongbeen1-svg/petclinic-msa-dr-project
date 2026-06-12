@@ -13,3 +13,14 @@
 # data "aws_iam_policy" "aws_ssm_core_policy" {
 #   name = "AmazonSSMManagedInstanceCore"
 # }
+
+# 신뢰 관계(Trust Relationship) 정의
+data "aws_iam_policy_document" "dms_assume_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["dms.amazonaws.com"]
+    }
+  }
+}

@@ -17,8 +17,4 @@ locals {
     Project     = "Project3-MSA"
     ManagedBy   = "Terraform"
   }
-
-  dms_ip             = var.dms_ip
-  my_ip              = var.my_ip
-  private_subnet_ids = var.private_subnet_ids
 }

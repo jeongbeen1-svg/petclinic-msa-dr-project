@@ -6,7 +6,9 @@ resource "azurerm_public_ip" "vpn_gateway" {
   sku                 = "Standard"
   zones               = ["1", "2", "3"]
 
-  tags = local.common_tags
+  tags = {
+    Name = "${local.namespace}-pip-vpngw"
+  }
 }
 
 resource "azurerm_virtual_network_gateway" "vpn" {
@@ -28,7 +30,9 @@ resource "azurerm_virtual_network_gateway" "vpn" {
     subnet_id                     = azurerm_subnet.gateway.id
   }
 
-  tags = local.common_tags
+  tags = {
+    Name = "${local.namespace}-vpngw"
+  }
 }
 
 resource "azurerm_local_network_gateway" "aws" {
@@ -39,6 +43,10 @@ resource "azurerm_local_network_gateway" "aws" {
   resource_group_name = azurerm_resource_group.this.name
   gateway_address     = each.value.gateway_ip_address
   address_space       = [var.aws_vpc_cidr]
+
+  tags = {
+    Name = "${local.namespace}-lng"
+  }
 }
 
 resource "azurerm_virtual_network_gateway_connection" "aws" {
@@ -56,6 +64,15 @@ resource "azurerm_virtual_network_gateway_connection" "aws" {
   dpd_timeout_seconds = 45
   bgp_enabled         = false
   routing_weight      = 0
+
+  ipsec_policy {
+    dh_group         = "DHGroup14"    # AWS 표준값
+    ike_encryption   = "AES256"
+    ike_integrity    = "SHA256"
+    ipsec_encryption = "AES256"
+    ipsec_integrity  = "SHA256"
+    pfs_group        = "PFS2048"
+  }
 
   lifecycle {
     ignore_changes = [
