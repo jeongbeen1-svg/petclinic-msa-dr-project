@@ -3,6 +3,13 @@ resource "azurerm_resource_group" "this" {
   location = local.location
 
   tags = local.common_tags
+
+  lifecycle {
+    precondition {
+      condition     = !startswith(local.namespace, "tf-core-ej-")
+      error_message = "Refusing to create legacy tf-core-ej Azure resource groups from this Terraform stack."
+    }
+  }
 }
 
 resource "azurerm_virtual_network" "this" {

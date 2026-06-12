@@ -10,14 +10,21 @@ variable "resource_group_name" {
   type = string
 }
 
-variable "dms_ip" {
+variable "vnet_id" {
   type = string
 }
 
-variable "my_ip" {
+variable "db_subnet_id" {
   type = string
 }
 
-variable "private_subnet_ids" {
-  type = list(string)
+variable "db_username" {
+  type        = string
+  description = "Azure MySQL administrator username"
+}
+
+variable "db_password" {
+  type        = string
+  sensitive   = true
+  description = "Azure MySQL administrator password"
 }
