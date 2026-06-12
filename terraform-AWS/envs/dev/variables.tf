@@ -13,3 +13,30 @@ variable "additional_admin_arns" {
   type        = list(string)
   default     = []
 }
+
+variable "azure_vpn_tunnel1_preshared_key" {
+  type        = string
+  description = "Pre-shared key for AWS-to-Azure VPN tunnel 1. Existing imported VPN connections ignore key drift."
+  sensitive   = true
+  default     = null
+}
+
+variable "azure_vpn_tunnel2_preshared_key" {
+  type        = string
+  description = "Pre-shared key for AWS-to-Azure VPN tunnel 2. Existing imported VPN connections ignore key drift."
+  sensitive   = true
+  default     = null
+}
+
+variable "azure_mysql_password" {
+  type        = string
+  description = "Azure Database for MySQL password used by AWS DMS target endpoints."
+  sensitive   = true
+  default     = "data1234!"
+  nullable    = false
+
+  validation {
+    condition     = length(trimspace(var.azure_mysql_password)) > 0
+    error_message = "azure_mysql_password must not be blank. Set TF_VAR_azure_mysql_password before running terraform apply."
+  }
+}

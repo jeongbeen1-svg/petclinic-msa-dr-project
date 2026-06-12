@@ -51,3 +51,14 @@ output "azure_dns_forwarding" {
     target_ips           = var.azure_private_dns_resolver_inbound_ips
   }
 }
+
+output "azure_vpn" {
+  value = var.azure_customer_gateway_ip_address != null ? {
+    customer_gateway_id = aws_customer_gateway.azure[0].id
+    vpn_gateway_id      = aws_vpn_gateway.azure[0].id
+    vpn_connection_id   = aws_vpn_connection.azure[0].id
+    tunnel1_address     = aws_vpn_connection.azure[0].tunnel1_address
+    tunnel2_address     = aws_vpn_connection.azure[0].tunnel2_address
+    azure_vnet_cidr     = var.azure_vnet_cidr
+  } : null
+}

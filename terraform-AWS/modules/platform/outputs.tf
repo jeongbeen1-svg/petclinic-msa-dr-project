@@ -17,3 +17,15 @@ output "rds_database_name" {
 output "rds_username" {
   value = aws_db_instance.petclinic_db.username
 }
+
+output "dms_replication_instance_arn" {
+  value = aws_dms_replication_instance.dms_instance.replication_instance_arn
+}
+
+output "dms_source_endpoint_arn" {
+  value = aws_dms_endpoint.source.endpoint_arn
+}
+
+output "dms_target_azure_fqdn_endpoint_arn" {
+  value = aws_dms_endpoint.target.endpoint_arn
+}

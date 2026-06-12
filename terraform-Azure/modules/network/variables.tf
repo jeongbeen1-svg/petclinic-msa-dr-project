@@ -20,16 +20,5 @@ variable "aws_vpn_tunnels" {
     shared_key                 = optional(string)
   }))
   description = "AWS VPN tunnel definitions for Azure local network gateways and connections."
-  default = {
-    tunnel-1 = {
-      local_network_gateway_name = "local-networ-gw-tunnel-1"
-      connection_name            = "vpn-conn"
-      gateway_ip_address         = "13.209.192.97"
-    }
-    tunnel-2 = {
-      local_network_gateway_name = "local-networ-gw-tunnel-2"
-      connection_name            = "vpn-conn2"
-      gateway_ip_address         = "43.202.23.196"
-    }
-  }
+  default     = {}
 }

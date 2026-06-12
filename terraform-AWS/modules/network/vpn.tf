@@ -1,37 +1,59 @@
-# 고객 게이트웨이 (Azure의 공인 IP 등록)
-resource "aws_customer_gateway" "azure_cgw" {
-  bgp_asn    = 65000                             # Azure와 맞출 BGP ASN
-  ip_address = local.azure_vpn_gateway_public_ip # Azure VPN Gateway의 IP
+resource "aws_customer_gateway" "azure" {
+  count = var.azure_customer_gateway_ip_address != null ? 1 : 0
+
+  bgp_asn    = 65000
+  ip_address = var.azure_customer_gateway_ip_address
   type       = "ipsec.1"
 
   tags = {
-    Name = "${local.namespace}-cgw"
+    Name = "custom-gw"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
-# 가상 프라이빗 게이트웨이 (VPC에 연결)
-resource "aws_vpn_gateway" "vpn_gw" {
-  vpc_id = aws_vpc.this.id
+resource "aws_vpn_gateway" "azure" {
+  count = var.azure_customer_gateway_ip_address != null ? 1 : 0
+
+  vpc_id          = aws_vpc.this.id
+  amazon_side_asn = 64512
 
   tags = {
-    Name = "${local.namespace}-vgw"
+    Name = "virtual-private-gw"
   }
 }
 
-# VPN 연결 생성
-resource "aws_vpn_connection" "main" {
-  vpn_gateway_id      = aws_vpn_gateway.vpn_gw.id
-  customer_gateway_id = aws_customer_gateway.azure_cgw.id
+resource "aws_vpn_connection" "azure" {
+  count = var.azure_customer_gateway_ip_address != null ? 1 : 0
+
+  customer_gateway_id = aws_customer_gateway.azure[0].id
+  vpn_gateway_id      = aws_vpn_gateway.azure[0].id
   type                = "ipsec.1"
   static_routes_only  = true
 
+  tunnel1_inside_cidr   = "169.254.149.196/30"
+  tunnel1_preshared_key = var.azure_vpn_tunnel1_preshared_key
+  tunnel2_inside_cidr   = "169.254.90.104/30"
+  tunnel2_preshared_key = var.azure_vpn_tunnel2_preshared_key
+
   tags = {
-    Name = "${local.namespace}-vpn-connection"
+    Name = "vpn-dms"
   }
 }
 
-# Azure 사설망 대역을 정적 라우팅으로 추가
-resource "aws_vpn_connection_route" "azure_route" {
-  destination_cidr_block = local.azure_ip_cidr_block
-  vpn_connection_id      = aws_vpn_connection.main.id
+resource "aws_route" "azure" {
+  for_each = var.azure_vnet_cidr != null && var.azure_customer_gateway_ip_address != null ? {
+    public-a    = aws_route_table.public_0.id
+    public-c    = aws_route_table.public_1.id
+    private-a   = aws_route_table.private_0.id
+    private-c   = aws_route_table.private_1.id
+    private-db  = aws_route_table.private_db.id
+    private-dms = aws_route_table.private_dms.id
+  } : {}
+
+  route_table_id         = each.value
+  destination_cidr_block = var.azure_vnet_cidr
+  gateway_id             = aws_vpn_gateway.azure[0].id
 }

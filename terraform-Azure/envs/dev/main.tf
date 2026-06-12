@@ -1,8 +1,10 @@
 module "network" {
   source = "../../modules/network"
 
-  namespace = local.namespace
-  location  = local.location
+  namespace       = local.namespace
+  location        = local.location
+  aws_vpc_cidr    = local.aws_vpn.vpc_cidr
+  aws_vpn_tunnels = local.aws_vpn.tunnels
 }
 
 module "platform" {
@@ -15,6 +17,12 @@ module "platform" {
   db_subnet_id        = module.network.subnet["db"].id
   db_username         = var.db_username
   db_password         = var.db_password
+  dms_ip              = local.dms_ip
+  my_ip               = local.my_ip
+  private_subnet_ids = [
+    module.network.subnet["private-a"].id,
+    module.network.subnet["private-c"].id
+  ]
 }
 
 module "workload" {

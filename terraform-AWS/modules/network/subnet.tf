@@ -102,14 +102,14 @@ resource "aws_route_table" "public_0" {
     gateway_id = aws_internet_gateway.this.id
   }
 
-  # azure로의 경로
-  route {
-    cidr_block = local.azure_ip_cidr_block
-    gateway_id = aws_vpn_gateway.vpn_gw.id
-  }
-
   tags = {
     Name = "${local.namespace}-rtb-${local.subnet_public[0].name}"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      route,
+    ]
   }
 }
 
@@ -121,13 +121,14 @@ resource "aws_route_table" "public_1" {
     gateway_id = aws_internet_gateway.this.id
   }
 
-  route {
-    cidr_block = local.azure_ip_cidr_block
-    gateway_id = aws_vpn_gateway.vpn_gw.id
-  }
-
   tags = {
     Name = "${local.namespace}-rtb-${local.subnet_public[1].name}"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      route,
+    ]
   }
 }
 
@@ -139,17 +140,14 @@ resource "aws_route_table" "private_0" {
     nat_gateway_id = aws_nat_gateway.this.id
   }
 
-  dynamic "route" {
-    for_each = var.azure_vnet_cidr != null && var.azure_vpn_gateway_id != null ? [1] : []
-
-    content {
-      cidr_block = var.azure_vnet_cidr
-      gateway_id = var.azure_vpn_gateway_id
-    }
-  }
-
   tags = {
     Name = "${local.namespace}-rtb-${local.subnet_private[0].name}"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      route,
+    ]
   }
 }
 
@@ -161,17 +159,14 @@ resource "aws_route_table" "private_1" {
     nat_gateway_id = aws_nat_gateway.this.id
   }
 
-  dynamic "route" {
-    for_each = var.azure_vnet_cidr != null && var.azure_vpn_gateway_id != null ? [1] : []
-
-    content {
-      cidr_block = var.azure_vnet_cidr
-      gateway_id = var.azure_vpn_gateway_id
-    }
-  }
-
   tags = {
     Name = "${local.namespace}-rtb-${local.subnet_private[1].name}"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      route,
+    ]
   }
 }
 
@@ -183,17 +178,14 @@ resource "aws_route_table" "private_db" {
     nat_gateway_id = aws_nat_gateway.this.id
   }
 
-  dynamic "route" {
-    for_each = var.azure_vnet_cidr != null && var.azure_vpn_gateway_id != null ? [1] : []
-
-    content {
-      cidr_block = var.azure_vnet_cidr
-      gateway_id = var.azure_vpn_gateway_id
-    }
-  }
-
   tags = {
     Name = "${local.namespace}-rtb-private-db"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      route,
+    ]
   }
 }
 
@@ -205,13 +197,14 @@ resource "aws_route_table" "private_dms" {
     nat_gateway_id = aws_nat_gateway.this.id
   }
 
-  route {
-    cidr_block = local.azure_ip_cidr_block
-    gateway_id = aws_vpn_gateway.vpn_gw.id
-  }
-
   tags = {
     Name = "${local.namespace}-rtb-dms"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      route,
+    ]
   }
 }
 

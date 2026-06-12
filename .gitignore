@@ -8,3 +8,6 @@
 # **/lambda_package/
 # **/lambda_layer/
 # **/*lambda*.zip
+# 민감한 정보가 포함된 tfvars 파일 제외
+*.tfvars
+*.tfvars.json

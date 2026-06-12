@@ -56,10 +56,4 @@ resource "azurerm_virtual_network_gateway_connection" "aws" {
   dpd_timeout_seconds = 45
   bgp_enabled         = false
   routing_weight      = 0
-
-  lifecycle {
-    ignore_changes = [
-      shared_key,
-    ]
-  }
 }

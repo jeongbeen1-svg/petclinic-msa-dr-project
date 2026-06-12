@@ -1,10 +1,8 @@
-# DMS용 보안 그룹 생성
 resource "aws_security_group" "dms_sg" {
   name        = "dms-replication-sg"
   description = "Security group for DMS replication instance"
   vpc_id      = local.vpc_id
 
-  # 소스 DB로 가는 출구 (RDS 보안 그룹 ID를 명시)
   egress {
     from_port       = 3306
     to_port         = 3306
@@ -12,7 +10,6 @@ resource "aws_security_group" "dms_sg" {
     security_groups = [aws_security_group.db_sg.id]
   }
 
-  # 타겟(Azure)으로 나가는 출구 (VPN 대역 혹은 전체 허용)
   egress {
     from_port   = 3306
     to_port     = 3306
@@ -25,7 +22,6 @@ resource "aws_security_group" "dms_sg" {
   }
 }
 
-# DMS 복제 인스턴스용 서브넷 그룹
 resource "aws_dms_replication_subnet_group" "dms_subnet_group" {
   replication_subnet_group_id          = "dms-subnet-group"
   replication_subnet_group_description = "DMS subnet group for migration"
@@ -36,32 +32,29 @@ resource "aws_dms_replication_subnet_group" "dms_subnet_group" {
   }
 }
 
-# DMS 복제 인스턴스
 resource "aws_dms_replication_instance" "dms_instance" {
   replication_instance_id     = "dms-instance-mysql-to-mysql"
   replication_instance_class  = "dms.t3.medium"
   allocated_storage           = 50
   vpc_security_group_ids      = [aws_security_group.dms_sg.id]
   replication_subnet_group_id = aws_dms_replication_subnet_group.dms_subnet_group.id
-  publicly_accessible         = false # 프라이빗 환경을 권장함
+  publicly_accessible         = false
 
   tags = {
     Name = "${local.namespace}-dms-ri"
   }
 }
 
-# 소스 엔드포인트 (AWS RDS)
 resource "aws_dms_endpoint" "source" {
   endpoint_id   = "source-rds-endpoint"
   endpoint_type = "source"
   engine_name   = "mysql"
   username      = aws_db_instance.petclinic_db.username
-  password      = aws_db_instance.petclinic_db.password
+  password      = var.rds_mysql_password
   server_name   = split(":", aws_db_instance.petclinic_db.endpoint)[0]
   port          = 3306
 }
 
-# 타겟 엔드포인트 (Azure MySQL)
 resource "aws_dms_endpoint" "target" {
   endpoint_id   = "target-azure-endpoint"
   endpoint_type = "target"
@@ -72,7 +65,6 @@ resource "aws_dms_endpoint" "target" {
   port          = 3306
 }
 
-# DMS 마이그레이션 태스크
 resource "aws_dms_replication_task" "migration_task" {
   replication_task_id      = "petclinic-migration-task"
   migration_type           = "full-load-and-cdc"
@@ -80,9 +72,8 @@ resource "aws_dms_replication_task" "migration_task" {
   source_endpoint_arn      = aws_dms_endpoint.source.endpoint_arn
   target_endpoint_arn      = aws_dms_endpoint.target.endpoint_arn
 
-  # DMS가 요구하는 정확한 스키마 구조
   table_mappings = jsonencode({
-    "rules" = [
+    rules = [
       {
         "rule-type" = "selection"
         "rule-id"   = "1"
@@ -96,29 +87,27 @@ resource "aws_dms_replication_task" "migration_task" {
     ]
   })
 
-  # 복제 설정
-  # DMS가 구조를 건드리지 못하게 설정 (기본키 생성 충돌 오류 방지)
   replication_task_settings = jsonencode({
-    "FullLoadSettings" = {
-      "TargetTablePrepMode" = "DO_NOTHING"
-    },
-    "TargetMetadata" = {
-      "TargetSchemaMode" = "DoNothing"
-      "SupportLobs"      = true
-      "FullLobMode"      = true
-      "InlineLobMode"    = true
-      "ConstraintSettings" = {
-        "PrimaryKeyConstraints" = false
-        "UniqueConstraints"     = false
-        "Indexes"               = false
+    FullLoadSettings = {
+      TargetTablePrepMode = "DO_NOTHING"
+    }
+    TargetMetadata = {
+      TargetSchemaMode = "DoNothing"
+      SupportLobs      = true
+      FullLobMode      = true
+      InlineLobMode    = true
+      ConstraintSettings = {
+        PrimaryKeyConstraints = false
+        UniqueConstraints     = false
+        Indexes               = false
       }
-    },
-    "Logging" = {
-      "EnableLogging" = true
-      "LogComponents" = [
-        { "Id" = "SOURCE_UNLOAD", "Severity" = "LOGGER_SEVERITY_DEBUG" },
-        { "Id" = "TARGET_LOAD", "Severity" = "LOGGER_SEVERITY_DEBUG" },
-        { "Id" = "TRANSFORMATION", "Severity" = "LOGGER_SEVERITY_DEBUG" }
+    }
+    Logging = {
+      EnableLogging = true
+      LogComponents = [
+        { Id = "SOURCE_UNLOAD", Severity = "LOGGER_SEVERITY_DEBUG" },
+        { Id = "TARGET_LOAD", Severity = "LOGGER_SEVERITY_DEBUG" },
+        { Id = "TRANSFORMATION", Severity = "LOGGER_SEVERITY_DEBUG" }
       ]
     }
   })

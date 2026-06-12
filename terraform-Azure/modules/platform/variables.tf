@@ -28,3 +28,21 @@ variable "db_password" {
   sensitive   = true
   description = "Azure MySQL administrator password"
 }
+
+variable "dms_ip" {
+  type        = string
+  description = "AWS DMS replication instance public IP allowed to access Azure MySQL."
+  default     = ""
+}
+
+variable "my_ip" {
+  type        = string
+  description = "Operator public IP allowed to access Azure MySQL during tests."
+  default     = ""
+}
+
+variable "private_subnet_ids" {
+  type        = list(string)
+  description = "Private subnet IDs kept for DMS-related compatibility."
+  default     = []
+}

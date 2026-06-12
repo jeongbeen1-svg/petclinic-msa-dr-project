@@ -1,10 +1,12 @@
 module "network" {
   source = "../../modules/network"
 
-  namespace = local.namespace
-
-  azure_vpn_gateway_public_ip = local.azure_vpn_gateway_public_ip
-  azure_ip_cidr_block         = local.azure_ip_cidr_block
+  namespace                              = local.namespace
+  azure_private_dns_resolver_inbound_ips = local.azure_private_dns_resolver.inbound_ips
+  azure_customer_gateway_ip_address      = local.azure_vpn.gateway_ip_address
+  azure_vnet_cidr                        = local.azure_vpn.vnet_cidr
+  azure_vpn_tunnel1_preshared_key        = var.azure_vpn_tunnel1_preshared_key
+  azure_vpn_tunnel2_preshared_key        = var.azure_vpn_tunnel2_preshared_key
 }
 
 module "platform" {
@@ -22,15 +24,15 @@ module "platform" {
   node_security_group_id    = module.workload.node_security_group_id
   bastion_security_group_id = module.workload.bastion_security_group_id
 
-  azure_ip_cidr_block = local.azure_ip_cidr_block
+  azure_ip_cidr_block = local.azure_vpn.vnet_cidr
   private_subnets_dms = [
     module.network.subnet["private-a-dms"].id,
     module.network.subnet["private-c-dms"].id
   ]
 
-  target_username   = local.target_username
-  target_password   = local.target_password
-  target_db_address = local.target_db_address
+  target_username   = "petclinicadmin"
+  target_password   = var.azure_mysql_password
+  target_db_address = "tfcorejaebok1205testdevmysql.mysql.database.azure.com"
 }
 
 module "workload" {

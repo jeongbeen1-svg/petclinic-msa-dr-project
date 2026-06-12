@@ -17,8 +17,8 @@ locals {
   }
 
   azure_vpn = {
-    vnet_cidr      = "10.0.0.0/16"
-    vpn_gateway_id = "vgw-03d67644087c4a930"
+    gateway_ip_address = data.terraform_remote_state.azure.outputs.module.network.vpn_gateway.public_ip_address
+    vnet_cidr          = "10.0.0.0/16"
   }
 
   # assumed-role ARN을 정규 IAM Role ARN으로 변환하는 로컬 변수
@@ -38,12 +38,4 @@ locals {
     var.additional_admin_arns,
     [local.normalized_arn]
   ))
-
-  # Azure VPN Gateway Public IP
-  azure_vpn_gateway_public_ip = "20.214.223.186"
-  # Azure VNet CIDR Block
-  azure_ip_cidr_block = "10.1.0.0/16"
-
-  target_username   = "pet_admin"
-  target_password   = "data1234!"
-  target_db_address = "10.1.1.4"
+}

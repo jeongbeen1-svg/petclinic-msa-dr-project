@@ -15,3 +15,15 @@ variable "bastion_allowed_cidrs" {
   description = "CIDR blocks allowed to SSH to the Azure bastion VM"
   default     = ["58.72.80.6/32"]
 }
+
+variable "aws_vpn_tunnel1_preshared_key" {
+  type        = string
+  description = "Pre-shared key for Azure-to-AWS VPN tunnel 1."
+  sensitive   = true
+}
+
+variable "aws_vpn_tunnel2_preshared_key" {
+  type        = string
+  description = "Pre-shared key for Azure-to-AWS VPN tunnel 2."
+  sensitive   = true
+}
