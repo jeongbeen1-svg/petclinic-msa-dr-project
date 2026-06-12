@@ -15,6 +15,15 @@ Before running:
    az account set --subscription "<subscription-id>"
    ```
 
+   If Azure CLI is not available, Terraform can also use service principal authentication:
+
+   ```bash
+   export ARM_SUBSCRIPTION_ID="<subscription-id>"
+   export ARM_TENANT_ID="<tenant-id>"
+   export ARM_CLIENT_ID="<client-id>"
+   export ARM_CLIENT_SECRET="<client-secret>"
+   ```
+
 2. Edit `envs/dev/providers.tf` backend values or comment out the `backend "azurerm"` block for local state.
 
 3. Apply from the environment directory:

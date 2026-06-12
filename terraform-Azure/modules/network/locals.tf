@@ -43,7 +43,37 @@ locals {
     }
   ]
 
+  subnet_database = {
+    name         = "db"
+    address_cidr = "10.0.201.0/24"
+  }
+
+  subnet_dns_resolver = {
+    name         = "dns-resolver"
+    address_cidr = "10.0.254.0/28"
+  }
+
+  subnet_dns_resolver_outbound = {
+    name         = "dns-resolver-outbound"
+    address_cidr = "10.0.254.16/28"
+  }
+
+  gateway_subnet = {
+    name         = "GatewaySubnet"
+    address_cidr = "10.0.255.0/27"
+  }
+
   natgw = {
     name = "main"
+  }
+
+  vpn_gateway = {
+    name = "s2s"
+  }
+
+  dns_private_resolver = {
+    name                  = "main"
+    inbound_endpoint_name = "inbound"
+    outbound_endpoint_name = "outbound"
   }
 }
