@@ -247,7 +247,7 @@ resource "aws_eks_node_group" "system" {
   subnet_ids      = local.private_subnet_ids
 
   scaling_config {
-    desired_size = 0
+    desired_size = 2
     max_size     = 3
     min_size     = 0
   }

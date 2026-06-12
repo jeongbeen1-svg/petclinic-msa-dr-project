@@ -3,6 +3,13 @@ resource "azurerm_subnet" "public_0" {
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
   address_prefixes     = [local.subnet_public[0].address_cidr]
+
+  timeouts {
+    create = "60m"
+    update = "60m"
+    delete = "60m"
+    read   = "60m"
+  }
 }
 
 resource "azurerm_subnet" "public_1" {
@@ -10,6 +17,15 @@ resource "azurerm_subnet" "public_1" {
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
   address_prefixes     = [local.subnet_public[1].address_cidr]
+
+  timeouts {
+    create = "60m"
+    update = "60m"
+    delete = "60m"
+    read   = "60m"
+  }
+
+  depends_on = [azurerm_subnet.public_0]
 }
 
 resource "azurerm_subnet" "private_0" {
@@ -17,6 +33,13 @@ resource "azurerm_subnet" "private_0" {
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
   address_prefixes     = [local.subnet_private[0].address_cidr]
+
+  timeouts {
+    create = "60m"
+    update = "60m"
+    delete = "60m"
+    read   = "60m"
+  }
 }
 
 resource "azurerm_subnet" "private_1" {
@@ -24,6 +47,13 @@ resource "azurerm_subnet" "private_1" {
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
   address_prefixes     = [local.subnet_private[1].address_cidr]
+
+  timeouts {
+    create = "60m"
+    update = "60m"
+    delete = "60m"
+    read   = "60m"
+  }
 }
 
 resource "azurerm_subnet" "database" {
@@ -41,6 +71,13 @@ resource "azurerm_subnet" "database" {
         "Microsoft.Network/virtualNetworks/subnets/join/action",
       ]
     }
+  }
+
+  timeouts {
+    create = "60m"
+    update = "60m"
+    delete = "60m"
+    read   = "60m"
   }
 }
 
@@ -60,6 +97,13 @@ resource "azurerm_subnet" "dns_resolver_inbound" {
       ]
     }
   }
+
+  timeouts {
+    create = "60m"
+    update = "60m"
+    delete = "60m"
+    read   = "60m"
+  }
 }
 
 resource "azurerm_subnet" "dns_resolver_outbound" {
@@ -78,6 +122,13 @@ resource "azurerm_subnet" "dns_resolver_outbound" {
       ]
     }
   }
+
+  timeouts {
+    create = "60m"
+    update = "60m"
+    delete = "60m"
+    read   = "60m"
+  }
 }
 
 resource "azurerm_subnet" "gateway" {
@@ -85,6 +136,13 @@ resource "azurerm_subnet" "gateway" {
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
   address_prefixes     = [local.gateway_subnet.address_cidr]
+
+  timeouts {
+    create = "60m"
+    update = "60m"
+    delete = "60m"
+    read   = "60m"
+  }
 }
 
 resource "azurerm_subnet_nat_gateway_association" "private_0" {

@@ -16,8 +16,12 @@ terraform {
     }
   }
 
-  # Local state is used so this stack can be initialized before the Azure
-  # backend storage account exists.
+  backend "azurerm" {
+    resource_group_name  = "ej-terraform-state" # 상태 파일을 저장할 리소스 그룹
+    storage_account_name = "sttfstateej"       # 생성한 스토리지 계정 이름
+    container_name       = "tfstate"            # 컨테이너(폴더) 이름
+    key                  = "terraform.tfstate" # 상태 파일 이름
+  }
 }
 
 provider "azurerm" {

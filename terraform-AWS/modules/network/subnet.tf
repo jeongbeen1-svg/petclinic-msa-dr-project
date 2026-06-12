@@ -139,15 +139,6 @@ resource "aws_route_table" "private_0" {
     nat_gateway_id = aws_nat_gateway.this.id
   }
 
-  dynamic "route" {
-    for_each = var.azure_vnet_cidr != null && var.azure_vpn_gateway_id != null ? [1] : []
-
-    content {
-      cidr_block = var.azure_vnet_cidr
-      gateway_id = var.azure_vpn_gateway_id
-    }
-  }
-
   tags = {
     Name = "${local.namespace}-rtb-${local.subnet_private[0].name}"
   }
@@ -161,15 +152,6 @@ resource "aws_route_table" "private_1" {
     nat_gateway_id = aws_nat_gateway.this.id
   }
 
-  dynamic "route" {
-    for_each = var.azure_vnet_cidr != null && var.azure_vpn_gateway_id != null ? [1] : []
-
-    content {
-      cidr_block = var.azure_vnet_cidr
-      gateway_id = var.azure_vpn_gateway_id
-    }
-  }
-
   tags = {
     Name = "${local.namespace}-rtb-${local.subnet_private[1].name}"
   }
@@ -181,15 +163,6 @@ resource "aws_route_table" "private_db" {
   route {
     cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.this.id
-  }
-
-  dynamic "route" {
-    for_each = var.azure_vnet_cidr != null && var.azure_vpn_gateway_id != null ? [1] : []
-
-    content {
-      cidr_block = var.azure_vnet_cidr
-      gateway_id = var.azure_vpn_gateway_id
-    }
   }
 
   tags = {

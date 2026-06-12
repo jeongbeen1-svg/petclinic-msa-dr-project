@@ -1,3 +1,15 @@
+# IAM Role 생성
+resource "aws_iam_role" "dms_vpc_role" {
+  name               = "dms-vpc-role"
+  assume_role_policy = data.aws_iam_policy_document.dms_assume_role.json
+}
+
+# 필요한 정책 연결 (DMS용 기본 정책)
+resource "aws_iam_role_policy_attachment" "dms_vpc_role_attach" {
+  role       = aws_iam_role.dms_vpc_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonDMSVPCManagementRole"
+}
+
 # DMS용 보안 그룹 생성
 resource "aws_security_group" "dms_sg" {
   name        = "dms-replication-sg"
@@ -39,7 +51,7 @@ resource "aws_dms_replication_subnet_group" "dms_subnet_group" {
 # DMS 복제 인스턴스
 resource "aws_dms_replication_instance" "dms_instance" {
   replication_instance_id     = "dms-instance-mysql-to-mysql"
-  replication_instance_class  = "dms.t3.medium"
+  replication_instance_class  = "dms.t3.medium" # 일단은 제일 작은걸로 구현
   allocated_storage           = 50
   vpc_security_group_ids      = [aws_security_group.dms_sg.id]
   replication_subnet_group_id = aws_dms_replication_subnet_group.dms_subnet_group.id

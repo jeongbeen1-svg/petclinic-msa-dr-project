@@ -19,7 +19,7 @@ terraform {
   # [부트스트랩 전략]: 최초 1회는 이 backend 블록을 주석 처리하고 로컬에서 apply 한 뒤,
   # 생성된 S3/DynamoDB 정보 채워 넣고 주석 풀고 init 하시면 원격 마이그레이션이 완료
   backend "s3" {
-    bucket       = "tf-core-tfstate-jaebok1205"
+    bucket       = "tf-core-tfstate-1"
     key          = "dev/test/terraform.tfstate"
     region       = "ap-northeast-2"
     encrypt      = true
