@@ -4,6 +4,13 @@ resource "azurerm_private_dns_resolver" "this" {
   location            = azurerm_resource_group.this.location
   virtual_network_id  = azurerm_virtual_network.this.id
 
+  #Vnet 생성이 완료된 후에 DNS Resolver 생성이 필요하므로 depends_on 추가
+  depends_on = [
+    azurerm_virtual_network.this,
+    azurerm_subnet.dns_resolver_inbound,
+    azurerm_subnet.dns_resolver_outbound
+  ]
+
   tags = local.common_tags
 }
 
@@ -14,7 +21,7 @@ resource "azurerm_private_dns_resolver_inbound_endpoint" "this" {
 
   ip_configurations {
     private_ip_allocation_method = "Dynamic"
-    subnet_id                    = azurerm_subnet.dns_resolver.id
+    subnet_id                    = azurerm_subnet.dns_resolver_inbound.id
   }
 
   tags = local.common_tags

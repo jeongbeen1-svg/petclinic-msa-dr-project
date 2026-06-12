@@ -38,8 +38,8 @@ output "subnet" {
       cidr_block = azurerm_subnet.database.address_prefixes[0]
     }
     (local.subnet_dns_resolver.name) = {
-      id         = azurerm_subnet.dns_resolver.id
-      cidr_block = azurerm_subnet.dns_resolver.address_prefixes[0]
+      id         = azurerm_subnet.dns_resolver_inbound.id
+      cidr_block = azurerm_subnet.dns_resolver_inbound.address_prefixes[0]
     }
     (local.subnet_dns_resolver_outbound.name) = {
       id         = azurerm_subnet.dns_resolver_outbound.id

@@ -44,7 +44,7 @@ resource "azurerm_subnet" "database" {
   }
 }
 
-resource "azurerm_subnet" "dns_resolver" {
+resource "azurerm_subnet" "dns_resolver_inbound" {
   name                 = "${local.namespace}-subnet-${local.subnet_dns_resolver.name}"
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
