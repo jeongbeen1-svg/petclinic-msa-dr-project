@@ -2,7 +2,7 @@
 수동으로 가져가셔서 init & apply 하시면 됩니다. <br><br>
 ```diff
 [AWS]
--> 네트워크(vpc, subnet, igw, ngw) + EKS + Bastion Host + rds가 생성됩니다.
+-> 네트워크(vpc, subnet, igw, ngw) + EKS + Bastion Host + rds + vpn이 생성됩니다.
 [Azure]
 -> 네트워크(vpc, subnet, ngw) + AKS가 생성됩니다.
 ```
@@ -14,6 +14,7 @@
 * S3 삭제 오류
   -> 안에 파일이 있으면 삭제가 안됨
   -> 주석으로 강제 삭제 코드 넣어놨으니 사용하셔도 됩니다
+* 아직 vpn 적용되지 않았음
 
 -------------------------------<br>
 [EKS]<br>

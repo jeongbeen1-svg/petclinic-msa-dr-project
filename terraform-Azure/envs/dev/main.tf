@@ -29,7 +29,7 @@ module "workload" {
   public_subnet_id    = module.network.subnet["public-a"].id
   private_subnet_ids = [
     module.network.subnet["private-a"].id,
-    module.network.subnet["private-b"].id
+    module.network.subnet["private-c"].id
   ]
   bastion_allowed_cidrs = var.bastion_allowed_cidrs
 }

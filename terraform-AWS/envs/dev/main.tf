@@ -1,10 +1,10 @@
 module "network" {
   source = "../../modules/network"
 
-  namespace                              = local.namespace
-  azure_private_dns_resolver_inbound_ips = local.azure_private_dns_resolver.inbound_ips
-  azure_vnet_cidr                        = local.azure_vpn.vnet_cidr
-  azure_vpn_gateway_id                   = local.azure_vpn.vpn_gateway_id
+  namespace = local.namespace
+
+  azure_vpn_gateway_public_ip = local.azure_vpn_gateway_public_ip
+  azure_ip_cidr_block         = local.azure_ip_cidr_block
 }
 
 module "platform" {
@@ -21,6 +21,16 @@ module "platform" {
   ]
   node_security_group_id    = module.workload.node_security_group_id
   bastion_security_group_id = module.workload.bastion_security_group_id
+
+  azure_ip_cidr_block = local.azure_ip_cidr_block
+  private_subnets_dms = [
+    module.network.subnet["private-a-dms"].id,
+    module.network.subnet["private-c-dms"].id
+  ]
+
+  target_username   = local.target_username
+  target_password   = local.target_password
+  target_db_address = local.target_db_address
 }
 
 module "workload" {

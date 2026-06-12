@@ -70,6 +70,30 @@ resource "aws_subnet" "private_3" {
   }
 }
 
+# private subnet_4
+resource "aws_subnet" "private_4" {
+  vpc_id                  = aws_vpc.this.id
+  cidr_block              = local.subnet_private[4].cidr_block
+  availability_zone       = local.subnet_private[4].availability_zone
+  map_public_ip_on_launch = local.subnet_private[4].map_public_ip_on_launch
+
+  tags = {
+    Name = "${local.namespace}-subnet-${local.subnet_private[4].name}"
+  }
+}
+
+# private subnet_5
+resource "aws_subnet" "private_5" {
+  vpc_id                  = aws_vpc.this.id
+  cidr_block              = local.subnet_private[5].cidr_block
+  availability_zone       = local.subnet_private[5].availability_zone
+  map_public_ip_on_launch = local.subnet_private[5].map_public_ip_on_launch
+
+  tags = {
+    Name = "${local.namespace}-subnet-${local.subnet_private[5].name}"
+  }
+}
+
 resource "aws_route_table" "public_0" {
   vpc_id = aws_vpc.this.id
 
@@ -78,13 +102,10 @@ resource "aws_route_table" "public_0" {
     gateway_id = aws_internet_gateway.this.id
   }
 
-  dynamic "route" {
-    for_each = var.azure_vnet_cidr != null && var.azure_vpn_gateway_id != null ? [1] : []
-
-    content {
-      cidr_block = var.azure_vnet_cidr
-      gateway_id = var.azure_vpn_gateway_id
-    }
+  # azure로의 경로
+  route {
+    cidr_block = local.azure_ip_cidr_block
+    gateway_id = aws_vpn_gateway.vpn_gw.id
   }
 
   tags = {
@@ -100,13 +121,9 @@ resource "aws_route_table" "public_1" {
     gateway_id = aws_internet_gateway.this.id
   }
 
-  dynamic "route" {
-    for_each = var.azure_vnet_cidr != null && var.azure_vpn_gateway_id != null ? [1] : []
-
-    content {
-      cidr_block = var.azure_vnet_cidr
-      gateway_id = var.azure_vpn_gateway_id
-    }
+  route {
+    cidr_block = local.azure_ip_cidr_block
+    gateway_id = aws_vpn_gateway.vpn_gw.id
   }
 
   tags = {
@@ -180,6 +197,24 @@ resource "aws_route_table" "private_db" {
   }
 }
 
+resource "aws_route_table" "private_dms" {
+  vpc_id = aws_vpc.this.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.this.id
+  }
+
+  route {
+    cidr_block = local.azure_ip_cidr_block
+    gateway_id = aws_vpn_gateway.vpn_gw.id
+  }
+
+  tags = {
+    Name = "${local.namespace}-rtb-dms"
+  }
+}
+
 resource "aws_route_table_association" "public_0" {
   subnet_id      = aws_subnet.public_0.id
   route_table_id = aws_route_table.public_0.id
@@ -208,4 +243,14 @@ resource "aws_route_table_association" "private_2" {
 resource "aws_route_table_association" "private_3" {
   subnet_id      = aws_subnet.private_3.id
   route_table_id = aws_route_table.private_db.id
+}
+
+resource "aws_route_table_association" "private_4" {
+  subnet_id      = aws_subnet.private_4.id
+  route_table_id = aws_route_table.private_dms.id
+}
+
+resource "aws_route_table_association" "private_5" {
+  subnet_id      = aws_subnet.private_5.id
+  route_table_id = aws_route_table.private_dms.id
 }
