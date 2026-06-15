@@ -7,7 +7,7 @@ resource "azurerm_kubernetes_cluster" "main" {
   private_cluster_enabled = false
 
   default_node_pool {
-    name                 = "system"
+    name = "system"
     # vm_size              = "Standard_D2s_v3"
     vm_size              = "Standard_B2s_v2"
     vnet_subnet_id       = var.private_subnet_ids[0]

@@ -38,7 +38,7 @@ resource "azurerm_nat_gateway" "this" {
   sku_name            = "Standard"
 
   depends_on = [azurerm_subnet.private_0, azurerm_subnet.private_1]
-  
+
   tags = local.common_tags
 }
 

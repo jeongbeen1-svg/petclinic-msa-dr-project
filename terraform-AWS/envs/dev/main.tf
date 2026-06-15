@@ -3,8 +3,8 @@ module "network" {
 
   namespace = local.namespace
 
-  azure_vpn_gateway_public_ip = local.azure_vpn.vpn_gateway_public_ip
-  azure_ip_cidr_block         = local.azure_vpn.vnet_cidr
+  azure_vpn_gateway_public_ip            = local.azure_vpn.vpn_gateway_public_ip
+  azure_ip_cidr_block                    = local.azure_vpn.vnet_cidr
   azure_private_dns_resolver_inbound_ips = local.azure_private_dns_resolver.inbound_ips
 }
 

@@ -48,11 +48,11 @@ resource "helm_release" "argocd" {
 # workload/autoscaler.tf
 
 resource "helm_release" "cluster_autoscaler" {
-  name             = "cluster-autoscaler"
-  repository       = "https://kubernetes.github.io/autoscaler"
-  chart            = "cluster-autoscaler"
-  version          = "9.37.0"
-  namespace        = "kube-system"
+  name       = "cluster-autoscaler"
+  repository = "https://kubernetes.github.io/autoscaler"
+  chart      = "cluster-autoscaler"
+  version    = "9.37.0"
+  namespace  = "kube-system"
 
   values = [
     yamlencode({
@@ -72,18 +72,18 @@ resource "helm_release" "cluster_autoscaler" {
         }
       }
       extraArgs = {
-        "balance-similar-node-groups"           = true
-        "skip-nodes-with-system-pods"           = false
-        "v"                                     = 4
-        "stderrthreshold"                       = "info"
-        "cloud-provider"                        = "aws"
-        "skip-nodes-with-local-storage"         = false
-        "expander"                              = "least-waste"
+        "balance-similar-node-groups"   = true
+        "skip-nodes-with-system-pods"   = false
+        "v"                             = 4
+        "stderrthreshold"               = "info"
+        "cloud-provider"                = "aws"
+        "skip-nodes-with-local-storage" = false
+        "expander"                      = "least-waste"
         # 테스트용 속도 개선 옵션
-        "scan-interval"                         = "10s"
-        "scale-down-unneeded-time"              = "1m"
-        "scale-down-delay-after-add"            = "1m"
-        "scale-down-utilization-threshold"      = "0.5"
+        "scan-interval"                    = "10s"
+        "scale-down-unneeded-time"         = "1m"
+        "scale-down-delay-after-add"       = "1m"
+        "scale-down-utilization-threshold" = "0.5"
       }
 
     })

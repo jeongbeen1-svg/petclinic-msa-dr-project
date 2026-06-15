@@ -18,7 +18,7 @@ locals {
   }
 
   azure_vpn = {
-    vnet_cidr      = "10.0.0.0/16"
+    vnet_cidr             = "10.0.0.0/16"
     vpn_gateway_public_ip = "20.249.161.202"
   }
 

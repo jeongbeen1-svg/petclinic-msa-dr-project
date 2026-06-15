@@ -439,9 +439,9 @@ resource "aws_iam_policy" "external_secrets" {
 
 # IRSA용 IAM Role 생성
 module "iam_assumable_role_external_secrets" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "5.44.0"
-  role_name                     = "external-secrets-role"
+  source    = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version   = "5.44.0"
+  role_name = "external-secrets-role"
   role_policy_arns = {
     policy = aws_iam_policy.external_secrets.arn
   }

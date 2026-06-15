@@ -66,7 +66,7 @@ resource "azurerm_virtual_network_gateway_connection" "aws" {
   routing_weight      = 0
 
   ipsec_policy {
-    dh_group         = "DHGroup14"    # AWS 표준값
+    dh_group         = "DHGroup14" # AWS 표준값
     ike_encryption   = "AES256"
     ike_integrity    = "SHA256"
     ipsec_encryption = "AES256"
