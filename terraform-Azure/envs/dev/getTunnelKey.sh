@@ -1,5 +1,16 @@
+VPN_NAME="vpn-dms"
+
+VPN_ID=$(aws ec2 describe-vpn-connections \
+  --region ap-northeast-2 \
+  --filters "Name=tag:Name,Values=$VPN_NAME" \
+  --query "VpnConnections[0].VpnConnectionId" \
+  --output text)
+
+echo $VPN_ID
+
+
 # 1. 두 개의 키를 배열로 저장
-KEYS=($(aws ec2 describe-vpn-connections --region ap-northeast-2 --vpn-connection-ids vpn-07383c114b1c8e7f1 --query 'VpnConnections[0].CustomerGatewayConfiguration' --output text | grep '<pre_shared_key>' | awk -F'</?pre_shared_key>' '{print $2}'))
+KEYS=($(aws ec2 describe-vpn-connections --region ap-northeast-2 --vpn-connection-ids $VPN_ID --query 'VpnConnections[0].CustomerGatewayConfiguration' --output text | grep '<pre_shared_key>' | awk -F'</?pre_shared_key>' '{print $2}'))
 
 # 2. 각각 변수로 꺼내 쓰기 (배열 인덱스는 0부터 시작합니다)
 TUNNEL1_KEY=${KEYS[0]}

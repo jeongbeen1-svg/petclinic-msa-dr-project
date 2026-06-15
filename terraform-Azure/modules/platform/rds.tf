@@ -41,6 +41,27 @@ resource "azurerm_mysql_flexible_server" "mysql" {
   ]
 }
 
+resource "azurerm_mysql_flexible_server_configuration" "binlog_row_image" {
+  name                = "binlog_row_image"
+  resource_group_name = var.resource_group_name
+  server_name         = azurerm_mysql_flexible_server.mysql.name
+  value               = "full"
+}
+
+resource "azurerm_mysql_flexible_server_configuration" "binlog_expire_logs_seconds" {
+  name                = "binlog_expire_logs_seconds"
+  resource_group_name = var.resource_group_name
+  server_name         = azurerm_mysql_flexible_server.mysql.name
+  value               = "86400"
+}
+
+resource "azurerm_mysql_flexible_server_configuration" "require_secure_transport" {
+  name                = "require_secure_transport"
+  resource_group_name = var.resource_group_name
+  server_name         = azurerm_mysql_flexible_server.mysql.name
+  value               = "OFF"
+}
+
 resource "azurerm_mysql_flexible_database" "petclinic" {
   name                = local.mysql.database_name
   resource_group_name = var.resource_group_name

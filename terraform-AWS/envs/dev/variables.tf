@@ -32,7 +32,7 @@ variable "azure_mysql_password" {
   type        = string
   description = "Azure Database for MySQL password used by AWS DMS target endpoints."
   sensitive   = true
-  default     = "data1234!"
+  default     = "password1!"
   nullable    = false
 
   validation {

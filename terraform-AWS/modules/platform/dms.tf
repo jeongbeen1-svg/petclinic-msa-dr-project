@@ -53,6 +53,12 @@ resource "aws_dms_endpoint" "source" {
   password      = var.rds_mysql_password
   server_name   = split(":", aws_db_instance.petclinic_db.endpoint)[0]
   port          = 3306
+
+  lifecycle {
+    ignore_changes = [
+      password
+    ]
+  }
 }
 
 resource "aws_dms_endpoint" "target" {
@@ -63,8 +69,15 @@ resource "aws_dms_endpoint" "target" {
   password      = local.target_password
   server_name   = local.target_db_address
   port          = 3306
+
+  lifecycle {
+    ignore_changes = [
+      password
+    ]
+  }
 }
 
+#AWS => Azure Migration Task
 resource "aws_dms_replication_task" "migration_task" {
   replication_task_id      = "petclinic-migration-task"
   migration_type           = "full-load-and-cdc"
@@ -114,5 +127,119 @@ resource "aws_dms_replication_task" "migration_task" {
 
   tags = {
     Name = "petclinic-migration-task"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      replication_task_settings,
+      table_mappings
+    ]
+  }
+}
+
+resource "aws_dms_endpoint" "failback_source_azure" {
+  endpoint_id   = "failback-source-azure-endpoint"
+  endpoint_type = "source"
+  engine_name   = "mysql"
+  username      = local.target_username
+  password      = local.target_password
+  server_name   = local.target_db_address
+  port          = 3306
+
+  lifecycle {
+    ignore_changes = [
+      password,
+      tags,
+      tags_all
+    ]
+  }
+}
+
+resource "aws_dms_endpoint" "failback_target_rds" {
+  endpoint_id   = "failback-target-azure-endpoint"
+  endpoint_type = "target"
+  engine_name   = "mysql"
+  username      = aws_db_instance.petclinic_db.username
+  password      = var.rds_mysql_password
+  server_name   = split(":", aws_db_instance.petclinic_db.endpoint)[0]
+  port          = 3306
+
+  mysql_settings {
+    parallel_load_threads = 1
+  }
+
+  lifecycle {
+    ignore_changes = [
+      password,
+      tags,
+      tags_all
+    ]
+  }
+}
+
+# Azure => AWS failback task
+resource "aws_dms_replication_task" "failback_azure_aws_task" {
+  replication_task_id      = "failback-azure-aws-task"
+  migration_type           = "full-load-and-cdc"
+  replication_instance_arn = aws_dms_replication_instance.dms_instance.replication_instance_arn
+  source_endpoint_arn      = aws_dms_endpoint.failback_source_azure.endpoint_arn
+  target_endpoint_arn      = aws_dms_endpoint.failback_target_rds.endpoint_arn
+
+  table_mappings = jsonencode({
+    rules = [
+      {
+        "rule-type" = "selection"
+        "rule-id"   = "503559913"
+        "rule-name" = "petclinic-users"
+        "object-locator" = {
+          "schema-name" = "petclinic"
+          "table-name"  = "users"
+        }
+        "rule-action" = "include"
+        filters       = []
+      },
+      {
+        "rule-type" = "selection"
+        "rule-id"   = "502440119"
+        "rule-name" = "drtest-users"
+        "object-locator" = {
+          "schema-name" = "drtest"
+          "table-name"  = "users"
+        }
+        "rule-action" = "include"
+        filters       = []
+      },
+      {
+        "rule-type" = "selection"
+        "rule-id"   = "502408298"
+        "rule-name" = "drtest-pets"
+        "object-locator" = {
+          "schema-name" = "drtest"
+          "table-name"  = "pets"
+        }
+        "rule-action" = "include"
+        filters       = []
+      }
+    ]
+  })
+
+  replication_task_settings = jsonencode({
+    Logging = {
+      EnableLogging    = true
+      EnableLogContext = true
+    }
+    FullLoadSettings = {
+      TargetTablePrepMode = "DO_NOTHING"
+    }
+  })
+
+  lifecycle {
+    ignore_changes = [
+      replication_task_settings,
+      start_replication_task,
+      table_mappings,
+      tags,
+      tags_all
+    ]
   }
 }

@@ -29,3 +29,15 @@ output "dms_source_endpoint_arn" {
 output "dms_target_azure_fqdn_endpoint_arn" {
   value = aws_dms_endpoint.target.endpoint_arn
 }
+
+output "dms_failback_source_azure_endpoint_arn" {
+  value = aws_dms_endpoint.failback_source_azure.endpoint_arn
+}
+
+output "dms_failback_target_rds_endpoint_arn" {
+  value = aws_dms_endpoint.failback_target_rds.endpoint_arn
+}
+
+output "dms_failback_azure_aws_task_arn" {
+  value = aws_dms_replication_task.failback_azure_aws_task.replication_task_arn
+}

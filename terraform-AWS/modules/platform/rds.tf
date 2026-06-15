@@ -1,8 +1,8 @@
 # 커스텀 파라미터 그룹 생성
 # Full Load + CDC인 경우 CDC 과정에서 필요한 작업임
-resource "aws_db_parameter_group" "mysql80_custom" {
-  name   = "mysql80-custom-params"
-  family = "mysql8.0" # RDS 인스턴스 버전과 정확히 일치해야 함
+resource "aws_db_parameter_group" "mysql84_custom" {
+  name   = "mysql8-4-custom-params"
+  family = "mysql8.4" # RDS 인스턴스 버전과 정확히 일치해야 함
 
   parameter {
     name  = "binlog_format"
@@ -16,7 +16,7 @@ resource "aws_db_instance" "petclinic_db" {
   # for_each를 사용하여 여러 개를 관리할 수 있음
   identifier = "petclinic-db-instance"
 
-  parameter_group_name = aws_db_parameter_group.mysql80_custom.name
+  parameter_group_name = aws_db_parameter_group.mysql84_custom.name
 
   # 사양 설정
   engine            = "mysql"

@@ -43,6 +43,13 @@ resource "aws_vpn_connection" "azure" {
   }
 }
 
+resource "aws_vpn_connection_route" "azure" {
+  count = var.azure_vnet_cidr != null && var.azure_customer_gateway_ip_address != null ? 1 : 0
+
+  destination_cidr_block = var.azure_vnet_cidr
+  vpn_connection_id      = aws_vpn_connection.azure[0].id
+}
+
 resource "aws_route" "azure" {
   for_each = var.azure_vnet_cidr != null && var.azure_customer_gateway_ip_address != null ? {
     public-a    = aws_route_table.public_0.id
