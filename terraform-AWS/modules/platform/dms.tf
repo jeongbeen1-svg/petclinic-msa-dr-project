@@ -74,7 +74,7 @@ resource "aws_dms_endpoint" "source" {
 
   depends_on = [
     aws_db_instance.petclinic_db,
-    data.aws_secretsmanager_secret_version
+    data.aws_secretsmanager_secret_version.db_password
   ]
 }
 

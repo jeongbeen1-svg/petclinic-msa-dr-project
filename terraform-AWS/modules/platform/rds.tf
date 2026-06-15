@@ -112,8 +112,7 @@ resource "aws_secretsmanager_secret_version" "db_connection_info_val" {
   secret_string = jsonencode({
     username = aws_db_instance.petclinic_db.username
     # AWS가 관리하는 암호의 ARN을 참조합니다
-        # password = aws_db_instance.petclinic_db.master_user_secret[0].secret_arn
-    password = jsondecode(data.aws_secretsmanager_secret_version.db_password.secret_string)["password"]
+    password = aws_db_instance.petclinic_db.master_user_secret[0].secret_arn
     host     = aws_db_instance.petclinic_db.address
     port     = aws_db_instance.petclinic_db.port
     dbname   = aws_db_instance.petclinic_db.db_name
