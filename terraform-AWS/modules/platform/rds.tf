@@ -103,7 +103,7 @@ resource "aws_security_group_rule" "db_ingress_dms" {
 
 # 시크릿 저장소 정의
 resource "aws_secretsmanager_secret" "db_connection_info" {
-  name = "petclinic/db-connection-info"
+  name = "petclinic/db-connection-info2"
 }
 
 # RDS 정보와 AWS 관리형 암호를 조합하여 저장
