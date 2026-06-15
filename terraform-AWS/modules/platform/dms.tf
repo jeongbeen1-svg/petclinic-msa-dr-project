@@ -87,6 +87,9 @@ resource "aws_dms_endpoint" "target" {
   password      = local.target_password
   server_name   = local.target_db_address
   port          = 3306
+
+  # 마이그레이션 이후에는 다시 켜서 정합성 검사 해야함
+  extra_connection_attributes = "initstmt=SET FOREIGN_KEY_CHECKS=0"
 }
 
 # DMS 마이그레이션 태스크
