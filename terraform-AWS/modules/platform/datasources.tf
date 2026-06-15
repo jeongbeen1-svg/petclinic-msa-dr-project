@@ -24,3 +24,8 @@ data "aws_iam_policy_document" "dms_assume_role" {
     }
   }
 }
+
+data "aws_secretsmanager_secret_version" "db_password" {
+  # RDS 리소스가 생성한 secret_arn을 정확히 지정
+  secret_id = aws_db_instance.petclinic_db.master_user_secret[0].secret_arn
+}

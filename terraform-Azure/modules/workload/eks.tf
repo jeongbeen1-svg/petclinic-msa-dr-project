@@ -8,11 +8,15 @@ resource "azurerm_kubernetes_cluster" "main" {
 
   default_node_pool {
     name                 = "system"
-    vm_size              = "Standard_D2s_v3"
+    # vm_size              = "Standard_D2s_v3"
+    vm_size              = "Standard_B2s_v2"
     vnet_subnet_id       = var.private_subnet_ids[0]
     auto_scaling_enabled = true
     min_count            = 1
-    max_count            = 3
+    max_count            = 4
+
+    # 삭제중 임시 풀 생성
+    temporary_name_for_rotation = "tempnodepool"
 
     upgrade_settings {
       drain_timeout_in_minutes      = 0

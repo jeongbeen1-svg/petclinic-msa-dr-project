@@ -68,4 +68,13 @@ locals {
 
   azure_vpn_gateway_public_ip = var.azure_vpn_gateway_public_ip
   azure_ip_cidr_block         = var.azure_ip_cidr_block
+  azure_private_dns_resolver_inbound_ips = var.azure_private_dns_resolver_inbound_ips
+
+  azure_dns_forwarding = {
+    enabled = length(local.azure_private_dns_resolver_inbound_ips) > 0
+    domains = [
+      "mysql.database.azure.com",
+      "privatelink.mysql.database.azure.com"
+    ]
+  }
 }
