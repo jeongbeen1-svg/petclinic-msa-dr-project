@@ -138,8 +138,8 @@ resource "aws_instance" "bastion" {
 
   root_block_device {
     volume_size = 50
-    volume_type = "gp3"    # 최신 실무 표준
-    encrypted   = true     # 보안 권장 사항
+    volume_type = "gp3" # 최신 실무 표준
+    encrypted   = true  # 보안 권장 사항
   }
 
   # SSM Agent는 AL2023에 기본 설치됨

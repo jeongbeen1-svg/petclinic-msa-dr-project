@@ -72,8 +72,8 @@ locals {
   }
 
   dns_private_resolver = {
-    name                  = "main"
-    inbound_endpoint_name = "inbound"
+    name                   = "main"
+    inbound_endpoint_name  = "inbound"
     outbound_endpoint_name = "outbound"
   }
 }

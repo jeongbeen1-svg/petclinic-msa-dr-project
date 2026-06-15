@@ -62,12 +62,12 @@ output "vpn_gateway" {
 
 output "dns_private_resolver" {
   value = {
-    id                    = azurerm_private_dns_resolver.this.id
-    name                  = azurerm_private_dns_resolver.this.name
-    inbound_endpoint_id   = azurerm_private_dns_resolver_inbound_endpoint.this.id
-    inbound_endpoint_name = azurerm_private_dns_resolver_inbound_endpoint.this.name
-    inbound_ip_addresses  = azurerm_private_dns_resolver_inbound_endpoint.this.ip_configurations[*].private_ip_address
-    outbound_endpoint_id  = azurerm_private_dns_resolver_outbound_endpoint.this.id
+    id                     = azurerm_private_dns_resolver.this.id
+    name                   = azurerm_private_dns_resolver.this.name
+    inbound_endpoint_id    = azurerm_private_dns_resolver_inbound_endpoint.this.id
+    inbound_endpoint_name  = azurerm_private_dns_resolver_inbound_endpoint.this.name
+    inbound_ip_addresses   = azurerm_private_dns_resolver_inbound_endpoint.this.ip_configurations[*].private_ip_address
+    outbound_endpoint_id   = azurerm_private_dns_resolver_outbound_endpoint.this.id
     outbound_endpoint_name = azurerm_private_dns_resolver_outbound_endpoint.this.name
   }
 }
@@ -76,9 +76,9 @@ output "aws_vpn" {
   value = {
     local_network_gateways = {
       for key, gateway in azurerm_local_network_gateway.aws : key => {
-        id                  = gateway.id
-        name                = gateway.name
-        gateway_ip_address  = gateway.gateway_address
+        id                   = gateway.id
+        name                 = gateway.name
+        gateway_ip_address   = gateway.gateway_address
         remote_address_space = gateway.address_space
       }
     }
