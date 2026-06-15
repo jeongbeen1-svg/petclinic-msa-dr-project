@@ -68,9 +68,14 @@ resource "aws_dms_endpoint" "source" {
   endpoint_type = "source"
   engine_name   = "mysql"
   username      = aws_db_instance.petclinic_db.username
-  password      = aws_db_instance.petclinic_db.password
+  password      = jsondecode(data.aws_secretsmanager_secret_version.db_password.secret_string)["password"]
   server_name   = split(":", aws_db_instance.petclinic_db.endpoint)[0]
   port          = 3306
+
+  depends_on = [
+    aws_db_instance.petclinic_db,
+    data.aws_secretsmanager_secret_version.db_password
+  ]
 }
 
 # 타겟 엔드포인트 (Azure MySQL)

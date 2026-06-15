@@ -60,7 +60,7 @@ resource "azurerm_virtual_network_gateway_connection" "aws" {
   local_network_gateway_id   = azurerm_local_network_gateway.aws[each.key].id
   shared_key                 = coalesce(each.value.shared_key, "managed-outside-terraform")
 
-  connection_protocol = "IKEv2"
+  connection_protocol = "IKEv1"
   dpd_timeout_seconds = 45
   bgp_enabled         = false
   routing_weight      = 0

@@ -181,7 +181,7 @@ resource "aws_eks_access_policy_association" "bastion" {
   }
 }
 
-# 3. OIDC Provider 생성 (IRSA 보안용)
+# OIDC Provider 생성 (IRSA 보안용)
 data "tls_certificate" "eks" {
   url = aws_eks_cluster.main.identity[0].oidc[0].issuer
 }
@@ -429,4 +429,26 @@ resource "aws_iam_role_policy" "cluster_autoscaler_policy" {
       Resource = "*"
     }]
   })
+}
+
+resource "aws_iam_policy" "external_secrets" {
+  name        = "ExternalSecretsPolicy"
+  description = "Allow External Secrets to read AWS Secrets Manager"
+  policy      = data.aws_iam_policy_document.external_secrets.json
+}
+
+# IRSA용 IAM Role 생성
+module "iam_assumable_role_external_secrets" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "5.44.0"
+  role_name                     = "external-secrets-role"
+  role_policy_arns = {
+    policy = aws_iam_policy.external_secrets.arn
+  }
+  oidc_providers = {
+    ex = {
+      provider_arn               = aws_iam_openid_connect_provider.eks.arn # EKS 클러스터의 OIDC ARN
+      namespace_service_accounts = ["external-secrets:external-secrets-sa"]
+    }
+  }
 }

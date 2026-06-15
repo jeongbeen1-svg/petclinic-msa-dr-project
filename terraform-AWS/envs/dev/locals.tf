@@ -12,13 +12,14 @@ locals {
     allowed_cidrs = ["0.0.0.0/0"] # 보안을 위해 실제 사무실/집 IP 대역으로 제한
   }
 
+  # 현재 azure 생성 시 ip 지정 생성됨
   azure_private_dns_resolver = {
     inbound_ips = ["10.0.254.4"]
   }
 
   azure_vpn = {
     vnet_cidr      = "10.0.0.0/16"
-    vpn_gateway_id = "vgw-03d67644087c4a930"
+    vpn_gateway_public_ip = "20.249.161.202"
   }
 
   # assumed-role ARN을 정규 IAM Role ARN으로 변환하는 로컬 변수
@@ -38,11 +39,6 @@ locals {
     var.additional_admin_arns,
     [local.normalized_arn]
   ))
-
-  # Azure VPN Gateway Public IP
-  azure_vpn_gateway_public_ip = "20.249.130.11"
-  # Azure VNet CIDR Block
-  azure_ip_cidr_block = "10.0.0.0/16"
 
   target_username   = "petclinicadmin"
   target_password   = "data1234!"

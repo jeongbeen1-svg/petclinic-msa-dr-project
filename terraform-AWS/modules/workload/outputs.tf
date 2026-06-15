@@ -33,3 +33,7 @@ output "ca_role_arn" {
 output "node_group_name" {
   value = aws_eks_node_group.system.id
 }
+
+output "iam_role_arn" {
+  value = module.iam_assumable_role_external_secrets.iam_role_arn
+}
