@@ -20,6 +20,7 @@ env:
   TF_VERSION: "1.14.7"
   AWS_REGION: "ap-northeast-2"
   WORKING_DIR: "terraform-AWS/envs/dev"
+  TF_LOG: DEBUG
 
 jobs:
   deploy-dev:
