@@ -3,6 +3,6 @@ output "module" {
     network  = module.network
     platform = module.platform
     workload = module.workload
-    sensitive = true
   }
+  sensitive = true
 }
