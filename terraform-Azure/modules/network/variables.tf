@@ -23,14 +23,14 @@ variable "aws_vpn_tunnels" {
     tunnel-1 = {
       local_network_gateway_name = "local-networ-gw-tunnel-test-1"
       connection_name            = "vpn-conn"
-      gateway_ip_address         = "54.116.15.231"
-      shared_key                 = "AZjJGmzJesq5VZ7U8hTA0SUts998dSvM"
+      gateway_ip_address         = "43.203.69.72"
+      shared_key                 = "8X.PB9fVikchxcGvnJjgRl_H_p9VoQ.Z"
     }
     tunnel-2 = {
       local_network_gateway_name = "local-networ-gw-tunnel-test-2"
       connection_name            = "vpn-conn2"
-      gateway_ip_address         = "54.116.76.155"
-      shared_key                 = "LQ6Yx_l7qfxzV8IV.06GTroZ0Fz3ISeu"
+      gateway_ip_address         = "52.78.32.238"
+      shared_key                 = "y2PyoX0bvLg0aB.FtjiIx3GqVmPDbuxf"
     }
   }
 }

@@ -11,5 +11,9 @@ variable "additional_admin_arns" {
       ]
   EOT
   type        = list(string)
-  default     = []
+  default     = [
+    "arn:aws:iam::906336681755:user/ej_user",
+    "arn:aws:iam::906336681755:user/jb_user",
+    "arn:aws:iam::906336681755:user/dr_user"
+  ]
 }

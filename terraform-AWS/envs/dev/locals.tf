@@ -19,7 +19,7 @@ locals {
 
   azure_vpn = {
     vnet_cidr             = "10.0.0.0/16"
-    vpn_gateway_public_ip = "20.249.161.202"
+    vpn_gateway_public_ip = "20.249.153.151"
   }
 
   # assumed-role ARN을 정규 IAM Role ARN으로 변환하는 로컬 변수
