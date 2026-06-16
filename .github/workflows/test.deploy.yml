@@ -3,7 +3,7 @@ name: "Gallery Deploy"
 on:
   push:
     branches: [main]
-    paths: ["terraform-AWS/envs/dev/**"]
+    paths: ["terraform-AWS/**"]
 
   # 깃허브 웹 화면에 [수동 배포 시작] 버튼을 만들어줌
   workflow_dispatch:
