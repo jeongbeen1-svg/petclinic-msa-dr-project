@@ -1,10 +1,18 @@
+# 1. 네임스페이스를 별도 리소스로 정의
+# resource "kubernetes_namespace" "argocd" {
+#   metadata {
+#     name = "argocd"
+#   }
+# }
+
 resource "helm_release" "argocd" {
   name             = "argocd"
   repository       = "https://argoproj.github.io/argo-helm" # 아르고 공식 헬름 창고 주소
   chart            = "argo-cd"                              # 설치할 패키지 이름
   version          = "7.1.3"                                # 원하는 아르고 버전 콕 집기
   namespace        = "argocd"
-  create_namespace = true # 방(Namespace)이 없으면 헬름이 알아서 자동으로 만들도록 지시
+  # namespace        = kubernetes_namespace.argocd.metadata[0].name
+  create_namespace = false
 
   # 서버 자원 부족을 예방하기 위한 헬름 전용 옵션
   # 배포 단계에서 자원이 살짝 정체되더라도 테라폼이 10분간 기다려주도록 타임아웃을 늘려줌
@@ -16,7 +24,10 @@ resource "helm_release" "argocd" {
   wait          = true # 배포 완료 대기
 
   # EKS 컴퓨터 노드 그룹(workload)이 100% 켜진 다음에 헬름 진입하도록 통제
-  depends_on = [module.workload]
+  depends_on = [
+    module.workload
+    # kubernetes_namespace.argocd
+  ]
 }
 
 
@@ -47,12 +58,20 @@ resource "helm_release" "argocd" {
 
 # workload/autoscaler.tf
 
+# resource "kubernetes_namespace" "kube_system" {
+#   metadata {
+#     name = "kube-system"
+#   }
+# }
+
 resource "helm_release" "cluster_autoscaler" {
   name       = "cluster-autoscaler"
   repository = "https://kubernetes.github.io/autoscaler"
   chart      = "cluster-autoscaler"
   version    = "9.37.0"
   namespace  = "kube-system"
+  # namespace  = kubernetes_namespace.kube_system.metadata[0].name
+  create_namespace = false
 
   values = [
     yamlencode({
@@ -89,7 +108,10 @@ resource "helm_release" "cluster_autoscaler" {
     })
   ]
 
-  depends_on = [module.workload]
+  depends_on = [
+    module.workload
+    # kubernetes_namespace.kube_system
+  ]
 }
 
 resource "helm_release" "metrics_server" {
@@ -97,7 +119,9 @@ resource "helm_release" "metrics_server" {
   repository = "https://kubernetes-sigs.github.io/metrics-server/"
   chart      = "metrics-server"
   namespace  = "kube-system"
+  # namespace  = kubernetes_namespace.kube_system.metadata[0].name
   version    = "3.12.0"
+  create_namespace = false
 
   # values 속성을 사용하여 설정을 YAML 형식으로 정의
   values = [
@@ -106,14 +130,26 @@ resource "helm_release" "metrics_server" {
       - --kubelet-insecure-tls
     EOF
   ]
+
+  depends_on = [
+    module.workload
+    # kubernetes_namespace.kube_system
+  ]
 }
+
+# resource "kubernetes_namespace" "external_secrets" {
+#   metadata {
+#     name = "external-secrets"
+#   }
+# }
 
 resource "helm_release" "external_secrets" {
   name             = "external-secrets"
   repository       = "https://charts.external-secrets.io"
   chart            = "external-secrets"
   namespace        = "external-secrets"
-  create_namespace = true
+  # namespace        = kubernetes_namespace.external_secrets.metadata[0].name
+  create_namespace = false
 
   values = [
     yamlencode({
@@ -127,4 +163,6 @@ resource "helm_release" "external_secrets" {
       }
     })
   ]
+
+  # depends_on = [kubernetes_namespace.external_secrets]
 }

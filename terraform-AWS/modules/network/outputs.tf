@@ -42,3 +42,21 @@ output "subnet" {
     }
   }
 }
+
+output "vpn_tunnel1_outside_ip" {
+  value = aws_vpn_connection.main.tunnel1_address
+}
+
+output "vpn_tunnel2_outside_ip" {
+  value = aws_vpn_connection.main.tunnel2_address
+}
+
+output "vpn_tunnel1_preshared_key" {
+  value     = aws_vpn_connection.main.tunnel1_preshared_key
+  sensitive = true # 보안을 위해 민감 정보로 마킹
+}
+
+output "vpn_tunnel2_preshared_key" {
+  value     = aws_vpn_connection.main.tunnel2_preshared_key
+  sensitive = true # 보안을 위해 민감 정보로 마킹
+}
