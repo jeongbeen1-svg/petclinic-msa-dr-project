@@ -44,7 +44,7 @@ jobs:
           EOF
 
       - run: terraform init -input=false
-      - run: terraform apply -input=false -auto-approve -var-file="env.dev.aws.tfvars""
+      - run: terraform apply -input=false -auto-approve -var-file="env.dev.aws.tfvars"
 
   # deploy-prod:
   #   needs: deploy-dev
