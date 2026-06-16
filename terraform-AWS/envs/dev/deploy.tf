@@ -108,23 +108,23 @@ resource "helm_release" "metrics_server" {
   ]
 }
 
-# resource "helm_release" "external_secrets" {
-#   name             = "external-secrets"
-#   repository       = "https://charts.external-secrets.io"
-#   chart            = "external-secrets"
-#   namespace        = "external-secrets"
-#   create_namespace = true
+resource "helm_release" "external_secrets" {
+  name             = "external-secrets"
+  repository       = "https://charts.external-secrets.io"
+  chart            = "external-secrets"
+  namespace        = "external-secrets"
+  create_namespace = true
 
-#   values = [
-#     yamlencode({
-#       installCRDs = true
-#       serviceAccount = {
-#         create = true
-#         name   = "external-secrets-sa"
-#         annotations = {
-#           "eks.amazonaws.com/role-arn" = module.workload.iam_role_arn
-#         }
-#       }
-#     })
-#   ]
-# }
+  values = [
+    yamlencode({
+      installCRDs = true
+      serviceAccount = {
+        create = true
+        name   = "external-secrets-sa"
+        annotations = {
+          "eks.amazonaws.com/role-arn" = module.workload.iam_role_arn
+        }
+      }
+    })
+  ]
+}
