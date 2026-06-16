@@ -43,7 +43,7 @@ jobs:
           ${{ secrets.DEV_AWS_TFVARS }}
           EOF
 
-      - run: terraform init -input=false"
+      - run: terraform init -input=false
       - run: terraform apply -input=false -auto-approve -var-file="env.dev.aws.tfvars""
 
   # deploy-prod:
