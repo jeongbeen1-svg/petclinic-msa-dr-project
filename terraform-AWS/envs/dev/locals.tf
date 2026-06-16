@@ -14,12 +14,12 @@ locals {
 
   # 현재 azure 생성 시 ip 지정 생성됨
   azure_private_dns_resolver = {
-    inbound_ips = ["10.0.254.4"]
+    inbound_ips = var.azure_inbound_ips
   }
 
   azure_vpn = {
-    vnet_cidr             = "10.0.0.0/16"
-    vpn_gateway_public_ip = "20.249.153.151"
+    vnet_cidr             = var.azure_vnet_cidr
+    vpn_gateway_public_ip = var.azure_vpn_gw_pip
   }
 
   # assumed-role ARN을 정규 IAM Role ARN으로 변환하는 로컬 변수
@@ -40,7 +40,7 @@ locals {
     [local.normalized_arn]
   ))
 
-  target_username   = "petclinicadmin"
-  target_password   = "data1234!"
-  target_db_address = "10.0.201.4"
+  target_username   = var.target_username
+  target_password   = var.target_password
+  target_db_address = var.target_db_address
 }

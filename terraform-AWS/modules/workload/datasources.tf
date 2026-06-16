@@ -14,6 +14,11 @@ data "aws_ami" "al2023" {
   }
 }
 
+# OIDC Provider 생성 (IRSA 보안용)
+data "tls_certificate" "eks" {
+  url = aws_eks_cluster.main.identity[0].oidc[0].issuer
+}
+
 # External Secrets용 IAM 정책 정의
 data "aws_iam_policy_document" "external_secrets" {
   statement {

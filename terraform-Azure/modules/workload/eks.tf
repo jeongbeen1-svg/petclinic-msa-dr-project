@@ -48,3 +48,16 @@ resource "azurerm_kubernetes_cluster" "main" {
     }
   }
 }
+
+resource "azurerm_role_assignment" "aks_acr_pull" {
+  # 타겟 범위: 위의 data 소스에서 알아낸 ACR의 순수 고유 ID를 지정
+  scope                = data.azurerm_container_registry.target_acr.id
+  
+  # 역할 이름: 이미지 Pull 권한
+  role_definition_name = "AcrPull"
+  
+  # 주체자 ID: AKS의 kubelet identity ID 연결
+  principal_id         = azurerm_kubernetes_cluster.main.kubelet_identity[0].object_id
+
+  skip_service_principal_aad_check = true
+}

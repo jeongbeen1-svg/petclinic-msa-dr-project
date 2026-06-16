@@ -11,9 +11,35 @@ variable "additional_admin_arns" {
       ]
   EOT
   type        = list(string)
-  default     = [
-    "arn:aws:iam::906336681755:user/ej_user",
-    "arn:aws:iam::906336681755:user/jb_user",
-    "arn:aws:iam::906336681755:user/dr_user"
-  ]
+  default     = []
+  # default     = [
+  #   "arn:aws:iam::906336681755:user/ej_user",
+  #   "arn:aws:iam::906336681755:user/jb_user",
+  #   "arn:aws:iam::906336681755:user/dr_user"
+  # ]
+}
+
+variable "target_username" {
+  type = string
+}
+
+variable "target_password" {
+  type = string
+}
+
+variable "target_db_address" {
+  type = string
+}
+
+variable "azure_vnet_cidr" {
+  type = string
+}
+
+variable "azure_vpn_gw_pip" {
+  type = string
+}
+
+variable "azure_inbound_ips" {
+  type = list(string)
+  default = []
 }

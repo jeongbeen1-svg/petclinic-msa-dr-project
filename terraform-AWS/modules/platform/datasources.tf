@@ -26,5 +26,5 @@ data "aws_iam_policy_document" "dms_assume_role" {
 }
 
 data "aws_secretsmanager_secret_version" "db_password" {
-  secret_id = "arn:aws:secretsmanager:ap-northeast-2:906336681755:secret:rds!db-7ee766ac-5829-4563-87e8-8660ad531a5d-lC9GIa"
+  secret_id = "arn:aws:secretsmanager:ap-northeast-2:723165663216:secret:db_certifi-oXDmzb"
 }
