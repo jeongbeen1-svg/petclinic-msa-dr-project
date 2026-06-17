@@ -3,6 +3,15 @@ name: "Project Deploy - Azure"
 on:
   # 부모 호출이 트리거
   workflow_call:
+    secrets:
+      ARM_CLIENT_ID:
+        required: true
+      AZURE_SUBSCRIPTION_ID:
+        required: true
+      AZURE_TENANT_ID:
+        required: true
+      DEV_AZURE_TFVARS:
+        required: true
   # 깃허브 웹 화면에 [수동 배포 시작] 버튼을 만들어줌
   workflow_dispatch:
 

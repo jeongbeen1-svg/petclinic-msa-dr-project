@@ -3,6 +3,11 @@ name: "Project Deploy - AWS"
 on:
   # 부모 호출이 트리거
   workflow_call:
+    secrets:
+      AWS_IAMROLE_ARN:
+        required: true
+      DEV_AWS_TFVARS:
+        required: true
   # 깃허브 웹 화면에 [수동 배포 시작] 버튼을 만들어줌
   workflow_dispatch:
 

@@ -17,9 +17,15 @@ permissions:
 
 jobs:
   call-azure:
-    uses: .github/workflows/test.deploy.azure.yml
-    secrets: inherit
+    uses: .github/workflows/test.deploy.azure.yml@main
+    secrets:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      DEV_AZURE_TFVARS: ${{ secrets.DEV_AZURE_TFVARS }}
 
   call-aws:
-    uses: .github/workflows/test.deploy.aws.yml
-    secrets: inherit
+    uses: .github/workflows/test.deploy.aws.yml@main
+    secrets:
+      AWS_IAMROLE_ARN: ${{ secrets.AWS_IAMROLE_ARN }}
+      DEV_AWS_TFVARS: ${{ secrets.DEV_AWS_TFVARS }}
