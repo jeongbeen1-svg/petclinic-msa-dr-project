@@ -1,10 +1,8 @@
-name: "Gallery Deploy"
+name: "Project Deploy"
 
 on:
-  push:
-    branches: [main]
-    paths: ["terraform-Azure/**"]
-
+  # 부모 호출이 트리거
+  workflow_call:
   # 깃허브 웹 화면에 [수동 배포 시작] 버튼을 만들어줌
   workflow_dispatch:
 

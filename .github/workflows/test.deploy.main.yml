@@ -1,0 +1,20 @@
+name: "Project Main Pipeline"
+on:
+  push:
+    branches: [main]
+    paths:
+      - "terraform-Azure/**"
+      - "terraform-AWS/**"
+  
+  # 부모의 배포 버튼 클릭 -> 동시 배포
+  # 자식의 배포 버튼 클릭 -> 개별 배포
+  workflow_dispatch:
+
+jobs:
+  call-azure:
+    if: contains(github.event.head_commit.modified, 'terraform-Azure/')
+    uses: ./.github/workflows/test.deploy.azure.yml
+  call-aws:
+    # needs: call-azure  # 여기서 의존성 제어
+    if: contains(github.event.head_commit.modified, 'terraform-AWS/')
+    uses: ./.github/workflows/test.deploy.aws.yml
