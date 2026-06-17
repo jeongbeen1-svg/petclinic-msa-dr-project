@@ -213,6 +213,36 @@ resource "aws_iam_role_policy_attachment" "node_policies" {
   role       = aws_iam_role.node.name
 }
 
+# ADOT 전용 IAM Role 생성 및 EKS OIDC 신뢰 관계 설정
+resource "aws_iam_role" "adot_irsa" {
+  name = "${local.cluster_name}-adot-collector-irsa"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Federated = aws_iam_openid_connect_provider.eks.arn # 사용 중인 OIDC 프로바이더 ARN 변수명 확인 필요
+        }
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Condition = {
+          StringEquals = {
+            # adot-col 네임스페이스의 adot-collector 서비스 계정만 이 역할을 취득 가능
+            "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" = "system:serviceaccount:adot-col:adot-collector"
+          }
+        }
+      }
+    ]
+  })
+}
+
+# 생성한 IRSA 롤에 CloudWatch 권한 정책 부여
+resource "aws_iam_role_policy_attachment" "adot_cloudwatch" {
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+  role       = aws_iam_role.adot_irsa.name
+}
+
 resource "aws_launch_template" "eks_nodes" {
   name_prefix = "${local.cluster_name}-node-template"
 
