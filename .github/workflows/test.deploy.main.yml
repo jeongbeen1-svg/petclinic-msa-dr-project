@@ -13,12 +13,10 @@ on:
 permissions:
   contents: read
   id-token: write
-  
+
 jobs:
   call-azure:
-    if: contains(github.event.head_commit.modified, 'terraform-Azure/')
     uses: ./.github/workflows/test.deploy.azure.yml
   call-aws:
     # needs: call-azure  # 여기서 의존성 제어
-    if: contains(github.event.head_commit.modified, 'terraform-AWS/')
     uses: ./.github/workflows/test.deploy.aws.yml

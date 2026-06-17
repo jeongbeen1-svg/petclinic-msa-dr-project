@@ -6,6 +6,10 @@ on:
   # 깃허브 웹 화면에 [수동 배포 시작] 버튼을 만들어줌
   workflow_dispatch:
 
+  push:
+    branches: [main]
+    paths: ["terraform-AWS/**"]
+
 permissions:
   contents: read
   id-token: write
