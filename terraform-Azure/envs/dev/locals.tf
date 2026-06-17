@@ -8,11 +8,6 @@ locals {
 
   aws_vpc_cidr = "172.31.0.0/16"
 
-  rds = {
-    db_username = "petclinicadmin"
-    db_password = "data1234!"
-  }
-
   vpn = {
     tunnel1_ip = var.vpn_tunnel1_outside_ip
     tunnel2_ip = var.vpn_tunnel2_outside_ip

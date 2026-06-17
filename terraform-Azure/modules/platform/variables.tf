@@ -18,13 +18,13 @@ variable "db_subnet_id" {
   type = string
 }
 
-variable "db_username" {
-  type        = string
-  description = "Azure MySQL administrator username"
-}
+# variable "db_username" {
+#   type        = string
+#   description = "Azure MySQL administrator username"
+# }
 
-variable "db_password" {
-  type        = string
-  sensitive   = true
-  description = "Azure MySQL administrator password"
-}
+# variable "db_password" {
+#   type        = string
+#   sensitive   = true
+#   description = "Azure MySQL administrator password"
+# }

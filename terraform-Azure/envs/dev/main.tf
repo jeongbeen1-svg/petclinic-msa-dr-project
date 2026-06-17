@@ -20,8 +20,6 @@ module "platform" {
   resource_group_name = module.network.resource_group_name
   vnet_id             = module.network.vnet["main"].id
   db_subnet_id        = module.network.subnet["db"].id
-  db_username         = local.rds.db_username
-  db_password         = local.rds.db_password
 }
 
 module "workload" {
