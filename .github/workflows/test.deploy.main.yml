@@ -4,11 +4,11 @@ name: "Project Main Pipeline"
 # 자식의 배포 버튼 클릭 -> 개별 배포
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "terraform-Azure/**"
-      - "terraform-AWS/**"
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - "terraform-Azure/**"
+  #     - "terraform-AWS/**"
   workflow_dispatch:
 
 permissions:
