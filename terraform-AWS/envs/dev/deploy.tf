@@ -25,7 +25,7 @@ resource "helm_release" "argocd" {
 
   # EKS 컴퓨터 노드 그룹(workload)이 100% 켜진 다음에 헬름 진입하도록 통제
   depends_on = [
-    module.workload
+    module.workload,
     kubernetes_namespace.argocd
   ]
 }
@@ -109,7 +109,7 @@ resource "helm_release" "cluster_autoscaler" {
   ]
 
   depends_on = [
-    module.workload
+    module.workload,
     kubernetes_namespace.kube_system
   ]
 }
@@ -132,7 +132,7 @@ resource "helm_release" "metrics_server" {
   ]
 
   depends_on = [
-    module.workload
+    module.workload,
     kubernetes_namespace.kube_system
   ]
 }
