@@ -17,11 +17,11 @@ permissions:
 
 jobs:
   call-azure:
+    uses: .github/workflows/test.deploy.azure.yml
     environment: Azure
-    uses: ./.github/workflows/test.deploy.azure.yml
     secrets: inherit
 
   call-aws:
+    uses: .github/workflows/test.deploy.aws.yml
     environment: AWS
-    uses: ./.github/workflows/test.deploy.aws.yml
     secrets: inherit
