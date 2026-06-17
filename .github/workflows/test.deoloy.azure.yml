@@ -1,0 +1,52 @@
+name: "Gallery Deploy"
+
+on:
+  push:
+    branches: [main]
+    paths: ["terraform-Azure/**"]
+
+  # 깃허브 웹 화면에 [수동 배포 시작] 버튼을 만들어줌
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  TF_VERSION: "1.14.7"
+  AWS_REGION: "ap-northeast-2"
+  # TF_LOG: DEBUG
+
+jobs:
+  deploy-azure:
+    runs-on: ubuntu-latest
+    environment: Azure
+    env:
+      WORKING_DIR: "terraform-Azure/envs/dev"
+    concurrency:
+      group: test-deploy-azure
+      cancel-in-progress: false
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Create prod tfvars file from Secrets
+        run: |
+          cat << 'EOF' > env.dev.azure.tfvars
+          ${{ secrets.DEV_AZURE_TFVARS }}
+          EOF
+
+      - run: terraform init -input=false
+      - run: terraform apply -input=false -auto-approve -var-file="env.dev.azure.tfvars"

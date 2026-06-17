@@ -5,6 +5,11 @@ module "network" {
   location  = local.location
 
   aws_vpc_cidr = local.aws_vpc_cidr
+
+  tunnel1_ip = var.vpn_tunnel1_outside_ip
+  tunnel2_ip = var.vpn_tunnel2_outside_ip
+  tunnel1_key = var.vpn_tunnel1_preshared_key
+  tunnel2_key = var.vpn_tunnel2_preshared_key
 }
 
 module "platform" {

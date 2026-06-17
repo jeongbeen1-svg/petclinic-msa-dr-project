@@ -1,4 +1,5 @@
 # 네임스페이스를 별도 리소스로 정의
+# kube-system은 클러스터가 자동으로 생성하는거라서 따로 관리 안해줌
 resource "kubernetes_namespace" "argocd" {
   metadata {
     name = "argocd"

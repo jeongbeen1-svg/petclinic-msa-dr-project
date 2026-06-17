@@ -50,7 +50,7 @@ resource "azurerm_local_network_gateway" "aws" {
 }
 
 resource "azurerm_virtual_network_gateway_connection" "aws" {
-  for_each = var.aws_vpn_tunnels
+  for_each = local.aws_vpn_tunnels
 
   name                       = each.value.connection_name
   location                   = azurerm_resource_group.this.location

@@ -1,0 +1,49 @@
+name: "Gallery Deploy"
+
+on:
+  push:
+    branches: [main]
+    paths: ["terraform-AWS/**"]
+
+  # 깃허브 웹 화면에 [수동 배포 시작] 버튼을 만들어줌
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  TF_VERSION: "1.14.7"
+  AWS_REGION: "ap-northeast-2"
+  # TF_LOG: DEBUG
+
+jobs:
+  deploy-aws:
+    runs-on: ubuntu-latest
+    environment: AWS
+    env:
+      WORKING_DIR: "terraform-AWS/envs/dev"
+    concurrency:
+      group: test-deploy-aws
+      cancel-in-progress: false
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_IAMROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Create dev tfvars file from Secrets
+        run: |
+          cat << 'EOF' > env.dev.aws.tfvars
+          ${{ secrets.DEV_AWS_TFVARS }}
+          EOF
+
+      - run: terraform init -input=false
+      - run: terraform apply -input=false -auto-approve -var-file="env.dev.aws.tfvars"
