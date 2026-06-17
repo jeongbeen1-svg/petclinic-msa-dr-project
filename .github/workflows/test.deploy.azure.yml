@@ -22,6 +22,7 @@ env:
 jobs:
   deploy-azure:
     runs-on: ubuntu-latest
+    environment: Azure
     env:
       WORKING_DIR: "terraform-Azure/envs/dev"
     concurrency:
