@@ -1,4 +1,4 @@
-name: "Project Deploy"
+name: "Project Deploy - AWS"
 
 on:
   # 부모 호출이 트리거
