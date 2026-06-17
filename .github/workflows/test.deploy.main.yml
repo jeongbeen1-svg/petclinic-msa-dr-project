@@ -16,7 +16,11 @@ permissions:
 
 jobs:
   call-azure:
+    environment: Azure
     uses: ./.github/workflows/test.deploy.azure.yml
+    secrets: inherit
   call-aws:
+    environment: Azure
     # needs: call-azure  # 여기서 의존성 제어
     uses: ./.github/workflows/test.deploy.aws.yml
+    secrets: inherit
