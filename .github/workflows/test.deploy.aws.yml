@@ -22,7 +22,6 @@ env:
 jobs:
   deploy-aws:
     runs-on: ubuntu-latest
-    environment: AWS
     env:
       WORKING_DIR: "terraform-AWS/envs/dev"
     concurrency:

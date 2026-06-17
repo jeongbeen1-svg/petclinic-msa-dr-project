@@ -22,7 +22,6 @@ env:
 jobs:
   deploy-azure:
     runs-on: ubuntu-latest
-    environment: Azure
     env:
       WORKING_DIR: "terraform-Azure/envs/dev"
     concurrency:
@@ -47,7 +46,7 @@ jobs:
       - name: Add GitHub Actions IP to Key Vault Firewall
         run: |
           # 현재 러너의 IP를 가져와서 Azure Key Vault 방화벽에 추가
-          # 배포시에만 열어주고 끝나면 닫힘
+          # 배포시에만 열어주고 끝나면 삭제 되도록 하단에도 추가
           MY_IP=$(curl -s https://api.ipify.org)
           az keyvault network-rule add --name "db-certifi" --resource-group "ej-terraform-state" --ip-address $MY_IP
 
@@ -59,3 +58,9 @@ jobs:
 
       - run: terraform init -input=false
       - run: terraform apply -input=false -auto-approve -var-file="env.dev.azure.tfvars"
+
+      - name: Remove IP from Firewall
+        if: always() # 배포가 성공하든 실패하든 무조건 실행
+        run: |
+          MY_IP=$(curl -s https://api.ipify.org)
+          az keyvault network-rule remove --name "db-certifi" --resource-group "ej-terraform-state" --ip-address $MY_IP
