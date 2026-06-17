@@ -10,6 +10,10 @@ on:
   # 자식의 배포 버튼 클릭 -> 개별 배포
   workflow_dispatch:
 
+permissions:
+  contents: read
+  id-token: write
+  
 jobs:
   call-azure:
     if: contains(github.event.head_commit.modified, 'terraform-Azure/')
