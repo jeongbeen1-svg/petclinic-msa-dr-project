@@ -58,20 +58,12 @@ resource "helm_release" "argocd" {
 
 # workload/autoscaler.tf
 
-resource "kubernetes_namespace" "kube_system" {
-  metadata {
-    name = "kube-system"
-  }
-}
-
 resource "helm_release" "cluster_autoscaler" {
   name       = "cluster-autoscaler"
   repository = "https://kubernetes.github.io/autoscaler"
   chart      = "cluster-autoscaler"
   version    = "9.37.0"
-  # namespace  = "kube-system"
-  namespace  = kubernetes_namespace.kube_system.metadata[0].name
-  create_namespace = false
+  namespace  = "kube-system"
 
   values = [
     yamlencode({
@@ -108,20 +100,15 @@ resource "helm_release" "cluster_autoscaler" {
     })
   ]
 
-  depends_on = [
-    module.workload,
-    kubernetes_namespace.kube_system
-  ]
+  depends_on = [module.workload]
 }
 
 resource "helm_release" "metrics_server" {
   name       = "metrics-server"
   repository = "https://kubernetes-sigs.github.io/metrics-server/"
   chart      = "metrics-server"
-  # namespace  = "kube-system"
-  namespace  = kubernetes_namespace.kube_system.metadata[0].name
+  namespace  = "kube-system"
   version    = "3.12.0"
-  create_namespace = false
 
   # values 속성을 사용하여 설정을 YAML 형식으로 정의
   values = [
@@ -131,10 +118,7 @@ resource "helm_release" "metrics_server" {
     EOF
   ]
 
-  depends_on = [
-    module.workload,
-    kubernetes_namespace.kube_system
-  ]
+  depends_on = [module.workload]
 }
 
 resource "kubernetes_namespace" "external_secrets" {
