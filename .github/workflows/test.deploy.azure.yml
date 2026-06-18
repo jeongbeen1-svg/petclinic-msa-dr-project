@@ -62,8 +62,6 @@ jobs:
 
       - name: Create prod tfvars file from Secrets
         run: |
-          mkdir -p terraform-Azure/envs/dev
-          cd terraform-Azure/envs/dev
           cat << 'EOF' > env.dev.azure.tfvars
           ${{ secrets.DEV_AZURE_TFVARS }}
           EOF
