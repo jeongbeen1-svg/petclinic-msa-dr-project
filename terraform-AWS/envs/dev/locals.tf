@@ -7,6 +7,12 @@ locals {
   # 추후 버킷 생성 코드 구현 시 제거함
   bucket_name = "${local.namespace}-tfstate-backup"
 
+  common_tags = {
+    Environment = "dev"
+    Project     = "Project3-MSA"
+    ManagedBy   = "Terraform"
+  }
+
   bastion = {
     instance_type = "t3.micro"
     allowed_cidrs = ["0.0.0.0/0"] # 보안을 위해 실제 사무실/집 IP 대역으로 제한

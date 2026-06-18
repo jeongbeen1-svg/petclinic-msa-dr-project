@@ -1,6 +1,9 @@
 # 네임스페이스를 별도 리소스로 정의
 # kube-system은 클러스터가 자동으로 생성하는거라서 따로 관리 안해줌
 resource "kubernetes_namespace" "argocd" {
+  # 모듈 내 클러스터 리소스가 완전히 생성되었는지 체크
+  count = length(module.workload.cluster_id) > 0 ? 1 : 0
+  
   metadata {
     name = "argocd"
   }
@@ -98,6 +101,8 @@ resource "helm_release" "metrics_server" {
 }
 
 resource "kubernetes_namespace" "external_secrets" {
+  count = length(module.workload.cluster_id) > 0 ? 1 : 0
+  
   metadata {
     name = "external-secrets"
   }
