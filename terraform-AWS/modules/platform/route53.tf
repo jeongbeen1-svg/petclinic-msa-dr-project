@@ -37,7 +37,7 @@ resource "aws_route53_zone" "main" {
 
 # AWS 리소스 상태 확인(Health Check) 생성
 resource "aws_route53_health_check" "aws_service" {
-  fqdn              = "www.${data.aws_route53_zone.selected.name}"
+  fqdn              = "www.${aws_route53_zone.main.name}"
   port              = 80
   type              = "HTTP"
   resource_path     = "/"
@@ -47,8 +47,8 @@ resource "aws_route53_health_check" "aws_service" {
 
 # Primary 레코드 (AWS)
 resource "aws_route53_record" "primary" {
-  zone_id = data.aws_route53_zone.selected.zone_id
-  name    = "www.${data.aws_route53_zone.selected.name}"
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "www.${aws_route53_zone.main.name}"
   type    = "A"
   ttl     = 60
   records = ["1.1.1.1"] # AWS 리소스 IP
@@ -64,8 +64,8 @@ resource "aws_route53_record" "primary" {
 
 # Secondary 레코드 (Azure)
 resource "aws_route53_record" "secondary" {
-  zone_id = data.aws_route53_zone.selected.zone_id
-  name    = "www.${data.aws_route53_zone.selected.name}"
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "www.${aws_route53_zone.main.name}"
   type    = "A"
   ttl     = 60
   records = ["2.2.2.2"] # Azure 리소스 IP
