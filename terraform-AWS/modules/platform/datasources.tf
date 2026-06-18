@@ -14,11 +14,6 @@
 #   name = "AmazonSSMManagedInstanceCore"
 # }
 
-# 기존에 생성된 호스팅 영역(Zone)을 참조
-data "aws_route53_zone" "selected" {
-  name = "ajean.shop"
-}
-
 # 신뢰 관계(Trust Relationship) 정의
 data "aws_iam_policy_document" "dms_assume_role" {
   statement {

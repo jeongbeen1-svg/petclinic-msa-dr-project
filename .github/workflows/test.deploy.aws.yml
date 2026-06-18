@@ -68,22 +68,21 @@ jobs:
 
       - name: Terraform Apply
         run: |
-          terraform apply -input=false -auto-approve 
-      # -json > output.json
+          terraform apply -input=false -auto-approve -json > output.json
 
       # 파싱 및 환경 변수 저장
-      # - name: Parse Outputs
-      #   run: |
-      #     # 클러스터 이름 추출
-      #     CLUSTER_NAME=$(terraform output -raw cluster_name)
-      #     echo "CLUSTER_NAME=$CLUSTER_NAME" >> $GITHUB_ENV
+      - name: Parse Outputs
+        run: |
+          # 클러스터 이름 추출
+          CLUSTER_NAME=$(terraform output -raw cluster_name)
+          echo "CLUSTER_NAME=$CLUSTER_NAME" >> $GITHUB_ENV
           
-      #     # 민감한 정보는 마스킹 처리 후 환경 변수 저장
-      #     DB_PASS=$(terraform output -raw target_password)
-      #     echo "::add-mask::$DB_PASS"
-      #     echo "DB_PASS=$DB_PASS" >> $GITHUB_ENV
+          # 민감한 정보는 마스킹 처리 후 환경 변수 저장
+          DB_PASS=$(terraform output -raw target_password)
+          echo "::add-mask::$DB_PASS"
+          echo "DB_PASS=$DB_PASS" >> $GITHUB_ENV
 
-      # 3. 파싱한 값으로 kubeconfig
-      # - name: Update Kubeconfig
-      #   run: |
-      #     aws eks update-kubeconfig --region ap-northeast-2 --name $CLUSTER_NAME
+      3. 파싱한 값으로 kubeconfig
+      - name: Update Kubeconfig
+        run: |
+          aws eks update-kubeconfig --region ap-northeast-2 --name $CLUSTER_NAME

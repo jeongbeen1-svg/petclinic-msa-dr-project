@@ -31,6 +31,10 @@
 #   validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
 # }
 
+resource "aws_route53_zone" "main" {
+  name = "ajean.shop"
+}
+
 # AWS 리소스 상태 확인(Health Check) 생성
 resource "aws_route53_health_check" "aws_service" {
   fqdn              = "www.${data.aws_route53_zone.selected.name}"
