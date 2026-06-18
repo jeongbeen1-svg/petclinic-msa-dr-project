@@ -82,7 +82,7 @@ jobs:
           echo "::add-mask::$DB_PASS"
           echo "DB_PASS=$DB_PASS" >> $GITHUB_ENV
 
-      3. 파싱한 값으로 kubeconfig
+      # 3. 파싱한 값으로 kubeconfig
       - name: Update Kubeconfig
         run: |
           aws eks update-kubeconfig --region ap-northeast-2 --name $CLUSTER_NAME
