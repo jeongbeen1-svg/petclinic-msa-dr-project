@@ -10,6 +10,7 @@ output "vnet" {
   value = {
     (local.vnet.name) = {
       id   = azurerm_virtual_network.this.id
+      cidr = local.vnet.address_space
       name = azurerm_virtual_network.this.name
     }
   }

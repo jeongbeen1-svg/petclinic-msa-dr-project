@@ -21,27 +21,26 @@ variable "additional_admin_arns" {
   ]
 }
 
-variable "target_username" {
-  type = string
-}
+# variable "target_username" {
+#   type = string
+# }
 
-variable "target_password" {
-  type = string
-}
+# variable "target_password" {
+#   type = string
+# }
 
-variable "target_db_address" {
-  type = string
-}
+# variable "target_db_address" {
+#   type = string
+# }
 
-variable "azure_vnet_cidr" {
-  type = string
-}
+# variable "azure_vnet_cidr" {
+#   type = string
+# }
 
-variable "azure_vpn_gw_pip" {
-  type = string
-}
+# variable "azure_vpn_gw_pip" {
+#   type = string
+# }
 
-variable "azure_inbound_ips" {
-  type    = list(string)
-  default = []
-}
+# variable "azure_inbound_ips" {
+#   type    = list(string)
+# }

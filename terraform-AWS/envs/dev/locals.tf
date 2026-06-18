@@ -14,12 +14,12 @@ locals {
 
   # 현재 azure 생성 시 ip 지정 생성됨
   azure_private_dns_resolver = {
-    inbound_ips = var.azure_inbound_ips
+    inbound_ips = try(data.terraform_remote_state.azure.outputs.azure_inbound_ips, ["10.0.254.4"])
   }
 
   azure_vpn = {
-    vnet_cidr             = var.azure_vnet_cidr
-    vpn_gateway_public_ip = var.azure_vpn_gw_pip
+    vnet_cidr             = try(data.terraform_remote_state.azure.outputs.azure_vnet_cidr, "10.0.0.0/16")
+    vpn_gateway_public_ip = try(data.terraform_remote_state.azure.outputs.azure_vpn_gw_pip, "20.249.153.151")
   }
 
   # assumed-role ARN을 정규 IAM Role ARN으로 변환하는 로컬 변수
@@ -40,7 +40,7 @@ locals {
     [local.normalized_arn]
   ))
 
-  target_username   = var.target_username
-  target_password   = var.target_password
-  target_db_address = var.target_db_address
+  target_username   = try(data.terraform_remote_state.azure.outputs.target_username, "petclinicadmin")
+  target_password   = try(data.terraform_remote_state.azure.outputs.target_password, "data1234!")
+  target_db_address = try(data.terraform_remote_state.azure.outputs.target_db_address, "10.0.201.4")
 }
