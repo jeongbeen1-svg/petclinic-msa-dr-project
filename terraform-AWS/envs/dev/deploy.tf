@@ -4,6 +4,8 @@ resource "kubernetes_namespace" "argocd" {
   metadata {
     name = "argocd"
   }
+
+  depends_on = [module.workload]
 }
 
 resource "helm_release" "argocd" {
@@ -99,6 +101,8 @@ resource "kubernetes_namespace" "external_secrets" {
   metadata {
     name = "external-secrets"
   }
+
+  depends_on = [module.workload]
 }
 
 resource "helm_release" "external_secrets" {
