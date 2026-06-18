@@ -1,14 +1,15 @@
 name: "Project Main Pipeline"
 
-# 부모의 배포 버튼 클릭 -> 동시 배포
-# 자식의 배포 버튼 클릭 -> 개별 배포
+# 부모의 배포 버튼 클릭 -> 동시 수동 배포
+# 자식의 배포 버튼 클릭 -> 개별 수동 배포
+# 자식의 타겟 디렉토리 변경 -> 개별 자동 배포
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "terraform-Azure/**"
-      - "terraform-AWS/**"
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - "terraform-Azure/**"
+  #     - "terraform-AWS/**"
   workflow_dispatch:
 
 permissions:
@@ -16,7 +17,11 @@ permissions:
   id-token: write
 
 jobs:
+  quality-gate-azure:
+    uses: ./.github/workflows/test.quality-gate.azure.yml
+  
   call-azure:
+    needs: quality-gate-azure
     uses: ./.github/workflows/test.deploy.azure.yml
     secrets:
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -24,7 +29,12 @@ jobs:
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       DEV_AZURE_TFVARS: ${{ secrets.DEV_AZURE_TFVARS }}
 
+  quality-gate-aws:
+    needs: call-azure
+    uses: ./.github/workflows/test.quality-gate.aws.yml
+
   call-aws:
+    needs: quality-gate-aws
     uses: ./.github/workflows/test.deploy.aws.yml
     secrets:
       AWS_IAMROLE_ARN: ${{ secrets.AWS_IAMROLE_ARN }}

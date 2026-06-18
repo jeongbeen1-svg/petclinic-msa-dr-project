@@ -32,7 +32,7 @@ resource "aws_db_instance" "petclinic_db" {
   # 인증 설정 (실무에선 var 변수 사용 필수)
   username = jsondecode(data.aws_secretsmanager_secret_version.db_password.secret_string)["username"]
   password = jsondecode(data.aws_secretsmanager_secret_version.db_password.secret_string)["password"]
-  db_name = "petclinic"
+  db_name  = "petclinic"
 
   # 네트워크 및 보안
   db_subnet_group_name   = aws_db_subnet_group.db_subnet.name

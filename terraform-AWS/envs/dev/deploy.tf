@@ -7,10 +7,10 @@ resource "kubernetes_namespace" "argocd" {
 }
 
 resource "helm_release" "argocd" {
-  name             = "argocd"
-  repository       = "https://argoproj.github.io/argo-helm" # 아르고 공식 헬름 창고 주소
-  chart            = "argo-cd"                              # 설치할 패키지 이름
-  version          = "7.1.3"                                # 원하는 아르고 버전 콕 집기
+  name       = "argocd"
+  repository = "https://argoproj.github.io/argo-helm" # 아르고 공식 헬름 창고 주소
+  chart      = "argo-cd"                              # 설치할 패키지 이름
+  version    = "7.1.3"                                # 원하는 아르고 버전 콕 집기
   # namespace        = "argocd"
   namespace        = kubernetes_namespace.argocd.metadata[0].name
   create_namespace = false
@@ -129,9 +129,9 @@ resource "kubernetes_namespace" "external_secrets" {
 }
 
 resource "helm_release" "external_secrets" {
-  name             = "external-secrets"
-  repository       = "https://charts.external-secrets.io"
-  chart            = "external-secrets"
+  name       = "external-secrets"
+  repository = "https://charts.external-secrets.io"
+  chart      = "external-secrets"
   # namespace        = "external-secrets"
   namespace        = kubernetes_namespace.external_secrets.metadata[0].name
   create_namespace = false

@@ -12,18 +12,18 @@ variable "aws_vpc_cidr" {
 }
 
 variable "tunnel1_ip" {
-  type        = string
+  type = string
 }
 
 variable "tunnel2_ip" {
-  type        = string
+  type = string
 }
 
 variable "tunnel1_key" {
-  type        = string
+  type = string
 }
 
 variable "tunnel2_key" {
-  type        = string
+  type = string
 }
 

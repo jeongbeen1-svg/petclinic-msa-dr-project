@@ -11,8 +11,8 @@ variable "additional_admin_arns" {
       ]
   EOT
   type        = list(string)
-  # default     = []
-  default     = [
+  default = [
+    # git action으로 하는 경우 사용자의 arn을 안 넣어주면 destroy가 제대로 안됨
     "arn:aws:iam::723165663216:role/oidc_for_youeo",
     "arn:aws:iam::723165663216:user/kdt5"
     # "arn:aws:iam::906336681755:user/ej_user",
@@ -42,6 +42,6 @@ variable "azure_vpn_gw_pip" {
 }
 
 variable "azure_inbound_ips" {
-  type = list(string)
+  type    = list(string)
   default = []
 }

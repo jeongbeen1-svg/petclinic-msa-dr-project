@@ -5,6 +5,7 @@
 *.terraform.lock.hcl
 *.pem
 *.tfvars
+*.yaml
 # Lambda 관련 파일 무시
 # **/lambda_package/
 # **/lambda_layer/
