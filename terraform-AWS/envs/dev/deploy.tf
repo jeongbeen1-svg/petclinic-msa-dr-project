@@ -5,7 +5,7 @@ resource "kubernetes_namespace" "argocd" {
     name = "argocd"
   }
 
-  depends_on = [module.workload]
+  depends_on = [module.workload.cluster_name]
 }
 
 resource "helm_release" "argocd" {
@@ -102,7 +102,7 @@ resource "kubernetes_namespace" "external_secrets" {
     name = "external-secrets"
   }
 
-  depends_on = [module.workload]
+  depends_on = [module.workload.cluster_name]
 }
 
 resource "helm_release" "external_secrets" {
@@ -126,5 +126,8 @@ resource "helm_release" "external_secrets" {
     })
   ]
 
-  depends_on = [kubernetes_namespace.external_secrets]
+  depends_on = [
+    module.workload,
+    kubernetes_namespace.external_secrets
+  ]
 }
