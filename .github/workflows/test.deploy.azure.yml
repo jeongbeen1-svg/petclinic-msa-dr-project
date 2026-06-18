@@ -4,7 +4,7 @@ on:
   # 부모 호출이 트리거
   workflow_call:
     secrets:
-      ARM_CLIENT_ID:
+      AZURE_CLIENT_ID:
         required: true
       AZURE_SUBSCRIPTION_ID:
         required: true
