@@ -17,7 +17,7 @@ resource "helm_release" "argocd" {
   chart      = "argo-cd"                              # 설치할 패키지 이름
   version    = "7.1.3"                                # 원하는 아르고 버전 콕 집기
   # namespace        = "argocd"
-  namespace        = kubernetes_namespace.argocd.metadata[0].name
+  namespace        = try(kubernetes_namespace.argocd[0].metadata[0].name, "default")
   create_namespace = false
 
   # 서버 자원 부족을 예방하기 위한 헬름 전용 옵션
@@ -115,7 +115,7 @@ resource "helm_release" "external_secrets" {
   repository = "https://charts.external-secrets.io"
   chart      = "external-secrets"
   # namespace        = "external-secrets"
-  namespace        = kubernetes_namespace.external_secrets.metadata[0].name
+  namespace        = try(kubernetes_namespace.external_secrets[0].metadata[0].name, "default")
   create_namespace = false
 
   values = [
