@@ -66,9 +66,11 @@ jobs:
 
       - run: terraform init -input=false
 
-      - name: Terraform Apply
-        run: |
-          terraform apply -input=false -auto-approve
+      - run: terraform plan -refresh=true
+
+      # - name: Terraform Apply
+      #   run: |
+      #     terraform apply -input=false -auto-approve
       #-json > output.json
 
       # 파싱 및 환경 변수 저장
