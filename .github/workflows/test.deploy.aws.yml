@@ -6,7 +6,12 @@ on:
     secrets:
       AWS_IAMROLE_ARN:
         required: true
-  # 깃허브 웹 화면에 [수동 배포 시작] 버튼을 만들어줌
+      AZURE_CLIENT_ID:
+        required: true
+      AZURE_SUBSCRIPTION_ID:
+        required: true
+      AZURE_TENANT_ID:
+        required: true
   workflow_dispatch:
 
   push:
@@ -68,7 +73,7 @@ jobs:
       - name: Show Terraform Error
         if: failure() # 실패했을 때만 실행
         run: cat output.json | jq . # 상세 에러 내용 확인
-        
+
       # 파싱 및 환경 변수 저장
       - name: Parse Outputs
         run: |
