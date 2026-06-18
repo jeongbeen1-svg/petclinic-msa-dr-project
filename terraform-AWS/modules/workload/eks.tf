@@ -432,7 +432,7 @@ resource "helm_release" "aws_load_balancer_controller" {
   namespace  = "kube-system"
   version    = "1.7.2" # AWS EKS 1.28~1.30 스펙에 가장 안정적인 차트 버전 선점
 
-values = [
+  values = [
     jsonencode({
       clusterName = aws_eks_cluster.main.name
       vpcId       = local.vpc_id

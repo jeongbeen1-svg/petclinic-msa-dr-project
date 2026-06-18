@@ -6,7 +6,7 @@ resource "aws_subnet" "public_0" {
   map_public_ip_on_launch = local.subnet_public[0].map_public_ip_on_launch
 
   tags = {
-    Name = "${local.namespace}-subnet-${local.subnet_public[0].name}"
+    Name                     = "${local.namespace}-subnet-${local.subnet_public[0].name}"
     "kubernetes.io/role/elb" = "1"
   }
 }
@@ -19,7 +19,7 @@ resource "aws_subnet" "public_1" {
   map_public_ip_on_launch = local.subnet_public[1].map_public_ip_on_launch
 
   tags = {
-    Name = "${local.namespace}-subnet-${local.subnet_public[1].name}"
+    Name                     = "${local.namespace}-subnet-${local.subnet_public[1].name}"
     "kubernetes.io/role/elb" = "1"
   }
 }
