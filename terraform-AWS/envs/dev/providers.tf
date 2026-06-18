@@ -14,6 +14,10 @@ terraform {
       source  = "hashicorp/helm"
       version = "~> 3.0"
     }
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = ">= 1.14.0"
+    }
   }
 
   # [부트스트랩 전략]: 최초 1회는 이 backend 블록을 주석 처리하고 로컬에서 apply 한 뒤,

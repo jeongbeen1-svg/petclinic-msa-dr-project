@@ -11,8 +11,8 @@ variable "additional_admin_arns" {
       ]
   EOT
   type        = list(string)
-  default = [
-    # git action으로 하는 경우 사용자의 arn을 안 넣어주면 destroy가 제대로 안됨
+  # default     = []
+  default     = [
     "arn:aws:iam::723165663216:role/oidc_for_youeo",
     "arn:aws:iam::723165663216:user/kdt5"
     # "arn:aws:iam::906336681755:user/ej_user",
@@ -42,5 +42,11 @@ variable "additional_admin_arns" {
 # }
 
 # variable "azure_inbound_ips" {
-#   type    = list(string)
+#   type = string
 # }
+
+variable "whatap_license" {
+  type        = string
+  description = "WhaTap Project License Key"
+}
+
