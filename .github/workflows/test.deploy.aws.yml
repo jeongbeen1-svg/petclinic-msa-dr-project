@@ -44,6 +44,8 @@ jobs:
       
       - name: Create dev tfvars file from Secrets
         run: |
+          mkdir -p terraform-AWS/envs/dev
+          cd terraform-AWS/envs/dev
           cat << 'EOF' > env.dev.aws.tfvars
           ${{ secrets.DEV_AWS_TFVARS }}
           EOF
