@@ -66,19 +66,12 @@ jobs:
 
       - run: terraform init -input=false
 
-      - run: terraform refresh
-
-      - name: Terraform Plan
+      - name: Terraform Apply
         run: |
-          terraform plan -no-color > plan.log 2>&1 || (cat plan.log && exit 1)
+          terraform apply -target=module.network -target=module.workload -target=module.platform -input=false -auto-approve
+          terraform apply -auto-approve -input=false
 
-      # - name: Terraform Apply
-      #   run: |
-      #     terraform apply -target=module.network -target=module.workload -target=module.platform -input=false -auto-approve
-      #     terraform apply -auto-approve -input=false
-      #-json > output.json
-
-      # 파싱 및 환경 변수 저장
+      # # 파싱 및 환경 변수 저장
       # - name: Parse Outputs
       #   run: |
       #     # 클러스터 이름 추출
