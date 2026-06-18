@@ -2,7 +2,7 @@
 # kube-system은 클러스터가 자동으로 생성하는거라서 따로 관리 안해줌
 resource "kubernetes_namespace" "argocd" {
   # 모듈 내 클러스터 리소스가 완전히 생성되었는지 체크
-  count = length(module.workload.cluster_id) > 0 ? 1 : 0
+  for_each = length(module.workload.cluster_id) > 0 ? toset([module.workload.cluster_id]) : []
 
   metadata {
     name = "argocd"
@@ -17,7 +17,7 @@ resource "helm_release" "argocd" {
   chart      = "argo-cd"                              # 설치할 패키지 이름
   version    = "7.1.3"                                # 원하는 아르고 버전 콕 집기
   # namespace        = "argocd"
-  namespace        = try(kubernetes_namespace.argocd[0].metadata[0].name, "default")
+  namespace        = try(kubernetes_namespace.argocd[module.workload.cluster_id].metadata[0].name, "default")
   create_namespace = false
 
   # 서버 자원 부족을 예방하기 위한 헬름 전용 옵션
@@ -101,7 +101,7 @@ resource "helm_release" "metrics_server" {
 }
 
 resource "kubernetes_namespace" "external_secrets" {
-  count = length(module.workload.cluster_id) > 0 ? 1 : 0
+  for_each = length(module.workload.cluster_id) > 0 ? toset([module.workload.cluster_id]) : []
 
   metadata {
     name = "external-secrets"
@@ -115,7 +115,7 @@ resource "helm_release" "external_secrets" {
   repository = "https://charts.external-secrets.io"
   chart      = "external-secrets"
   # namespace        = "external-secrets"
-  namespace        = try(kubernetes_namespace.external_secrets[0].metadata[0].name, "default")
+  namespace        = try(kubernetes_namespace.external_secrets[module.workload.cluster_id].metadata[0].name, "default")
   create_namespace = false
 
   values = [

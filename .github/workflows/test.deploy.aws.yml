@@ -74,7 +74,8 @@ jobs:
 
       # - name: Terraform Apply
       #   run: |
-      #     terraform apply -input=false -auto-approve
+      #     terraform apply -target=module.network -target=module.workload -target=module.platform -input=false -auto-approve
+      #     terraform apply -auto-approve -input=false
       #-json > output.json
 
       # 파싱 및 환경 변수 저장
