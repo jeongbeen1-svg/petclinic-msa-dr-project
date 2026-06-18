@@ -22,10 +22,6 @@ output "bastion_role_arn" {
   value = aws_iam_role.bastion_role.arn
 }
 
-# Karpenter 컨트롤러 ARN 노출
-output "karpenter_controller_role_arn" {
-  value = aws_iam_role.karpenter_controller.arn
-}
 output "ca_role_arn" {
   value = aws_iam_role.cluster_autoscaler.arn
 }
@@ -36,8 +32,4 @@ output "node_group_name" {
 
 output "iam_role_arn" {
   value = module.iam_assumable_role_external_secrets.iam_role_arn
-}
-
-output "adot_irsa_arn" {
-  value = aws_iam_role.adot_irsa.arn
 }
