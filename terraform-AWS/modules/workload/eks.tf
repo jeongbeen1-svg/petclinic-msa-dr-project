@@ -213,36 +213,6 @@ resource "aws_iam_role_policy_attachment" "node_policies" {
   role       = aws_iam_role.node.name
 }
 
-# ADOT 전용 IAM Role 생성 및 EKS OIDC 신뢰 관계 설정
-resource "aws_iam_role" "adot_irsa" {
-  name = "${local.cluster_name}-adot-collector-irsa"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Federated = aws_iam_openid_connect_provider.eks.arn # 사용 중인 OIDC 프로바이더 ARN 변수명 확인 필요
-        }
-        Action = "sts:AssumeRoleWithWebIdentity"
-        Condition = {
-          StringEquals = {
-            # adot-col 네임스페이스의 adot-collector 서비스 계정만 이 역할을 취득 가능
-            "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" = "system:serviceaccount:adot-col:adot-collector"
-          }
-        }
-      }
-    ]
-  })
-}
-
-# 생성한 IRSA 롤에 CloudWatch 권한 정책 부여
-resource "aws_iam_role_policy_attachment" "adot_cloudwatch" {
-  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
-  role       = aws_iam_role.adot_irsa.name
-}
-
 resource "aws_launch_template" "eks_nodes" {
   name_prefix = "${local.cluster_name}-node-template"
 
@@ -343,72 +313,6 @@ resource "aws_iam_role_policy" "node_alb" {
           "shield:DeleteProtection"
         ]
         Resource = "*"
-      }
-    ]
-  })
-}
-
-
-# 1. Karpenter Controller를 위한 IAM Role (OIDC 연동)
-resource "aws_iam_role" "karpenter_controller" {
-  name = "${local.cluster_name}-karpenter-controller"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Action    = "sts:AssumeRoleWithWebIdentity"
-      Effect    = "Allow"
-      Principal = { Federated = aws_iam_openid_connect_provider.eks.arn }
-      Condition = {
-        StringEquals = {
-          "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" = "system:serviceaccount:karpenter:karpenter"
-        }
-      }
-    }]
-  })
-}
-
-# 2. Karpenter Controller 정책 (최소 권한 원칙 반영)
-resource "aws_iam_role_policy" "karpenter_controller_policy" {
-  name = "${local.cluster_name}-karpenter-policy"
-  role = aws_iam_role.karpenter_controller.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "ec2:DescribeImages",
-          "ec2:RunInstances",
-          "ec2:DescribeSubnets",
-          "ec2:DescribeSecurityGroups",
-          "ec2:DescribeLaunchTemplates",
-          "ec2:DescribeInstances",
-          "ec2:DescribeInstanceTypes",
-          "ec2:DescribeInstanceTypeOfferings",
-          "ec2:DescribeAvailabilityZones",
-          "ec2:DeleteLaunchTemplate",
-          "ec2:CreateTags",
-          "ec2:CreateLaunchTemplate",
-          "ec2:CreateFleet",
-          "ec2:DescribeSpotPriceHistory",
-          "pricing:GetProducts",
-          "ec2:TerminateInstances",
-          "ssm:GetParameter",
-          "eks:DescribeCluster"
-        ]
-        Effect   = "Allow"
-        Resource = "*"
-      },
-      {
-        Effect   = "Allow"
-        Action   = "iam:PassRole"
-        Resource = aws_iam_role.node.arn
-        Condition = {
-          StringEquals = {
-            "iam:PassedToService" = "ec2.amazonaws.com"
-          }
-        }
       }
     ]
   })
