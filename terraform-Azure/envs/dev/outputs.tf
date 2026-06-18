@@ -1,13 +1,13 @@
 output "target_username" {
-  value = data.azurerm_key_vault_secret.db_username.value
+  value = module.platform.mysql_admin_username
 }
 
 output "target_password" {
-  value = data.azurerm_key_vault_secret.db_password.value
+  value = module.platform.mysql_admin_password
 }
 
 output "target_db_address" {
-  value = module.platform.azurerm_mysql_flexible_server.mysql.fqdn
+  value = module.platform.mysql_fqdn
 }
 
 output "azure_vnet_cidr" {
@@ -15,11 +15,11 @@ output "azure_vnet_cidr" {
 }
 
 output "azure_vpn_gw_pip" {
-  value = module.network.azurerm_public_ip.vpn_gateway.ip_address
+  value = module.network.vpn_gateway.public_ip_address
 }
 
 output "azure_inbound_ips" {
-  value = module.network.azurerm_private_dns_resolver_inbound_endpoint.this.ip_configurations[0].private_ip_address
+  value = module.network.dns_private_resolver.inbound_ip_addresses
 }
 
 output "module" {
