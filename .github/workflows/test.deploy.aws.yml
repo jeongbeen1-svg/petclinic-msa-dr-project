@@ -66,6 +66,8 @@ jobs:
 
       - run: terraform init -input=false
 
+      - run: terraform refresh
+
       - name: Terraform Plan
         run: |
           terraform plan -no-color > plan.log 2>&1 || (cat plan.log && exit 1)
