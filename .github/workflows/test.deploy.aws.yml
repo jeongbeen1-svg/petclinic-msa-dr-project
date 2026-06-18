@@ -6,8 +6,6 @@ on:
     secrets:
       AWS_IAMROLE_ARN:
         required: true
-      DEV_AWS_TFVARS:
-        required: true
       AZURE_CLIENT_ID:
         required: true
       AZURE_SUBSCRIPTION_ID:
