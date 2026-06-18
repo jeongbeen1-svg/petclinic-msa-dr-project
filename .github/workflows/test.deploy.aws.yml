@@ -8,6 +8,12 @@ on:
         required: true
       DEV_AWS_TFVARS:
         required: true
+      AZURE_CLIENT_ID:
+        required: true
+      AZURE_SUBSCRIPTION_ID:
+        required: true
+      AZURE_TENANT_ID:
+        required: true
   # 깃허브 웹 화면에 [수동 배포 시작] 버튼을 만들어줌
   workflow_dispatch:
 
@@ -47,6 +53,14 @@ jobs:
           role-to-assume: ${{ secrets.AWS_IAMROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
       
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      
+
       # - name: Create dev tfvars file from Secrets
       #   run: |
       #     cat << 'EOF' > env.dev.aws.tfvars
@@ -54,4 +68,24 @@ jobs:
       #     EOF
 
       - run: terraform init -input=false
-      - run: terraform apply -input=false -auto-approve
+
+      - name: Terraform Apply
+        run: |
+          terraform apply -input=false -auto-approve -json > output.json
+      
+      # 파싱 및 환경 변수 저장
+      - name: Parse Outputs
+        run: |
+          # 클러스터 이름 추출
+          CLUSTER_NAME=$(terraform output -raw cluster_name)
+          echo "CLUSTER_NAME=$CLUSTER_NAME" >> $GITHUB_ENV
+          
+          # 민감한 정보는 마스킹 처리 후 환경 변수 저장
+          DB_PASS=$(terraform output -raw target_password)
+          echo "::add-mask::$DB_PASS"
+          echo "DB_PASS=$DB_PASS" >> $GITHUB_ENV
+
+      # 3. 파싱한 값으로 kubeconfig
+      - name: Update Kubeconfig
+        run: |
+          aws eks update-kubeconfig --region ap-northeast-2 --name $CLUSTER_NAME

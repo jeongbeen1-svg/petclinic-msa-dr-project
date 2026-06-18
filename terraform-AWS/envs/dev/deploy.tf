@@ -31,34 +31,7 @@ resource "helm_release" "argocd" {
   ]
 }
 
-
-# resource "helm_release" "karpenter" {
-#   name             = "karpenter"
-#   repository       = "oci://public.ecr.aws/karpenter"
-#   chart            = "karpenter"
-#   version          = "1.0.0" # 설치하려는 정확한 버전으로 변경하세요
-#   namespace        = "karpenter"
-#   create_namespace = true
-
-#   # values 블록을 사용하여 설정을 한 번에 전달 (오류 방지)
-#   values = [
-#     yamlencode({
-#       settings = {
-#         clusterName = module.workload.cluster_name
-#       }
-#       serviceAccount = {
-#         annotations = {
-#           "eks.amazonaws.com/role-arn" = module.workload.karpenter_controller_role_arn
-#         }
-#       }
-#     })
-#   ]
-
-#   depends_on = [module.workload]
-# }
-
 # workload/autoscaler.tf
-
 resource "helm_release" "cluster_autoscaler" {
   name       = "cluster-autoscaler"
   repository = "https://kubernetes.github.io/autoscaler"

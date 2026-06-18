@@ -38,4 +38,7 @@ jobs:
     uses: ./.github/workflows/test.deploy.aws.yml
     secrets:
       AWS_IAMROLE_ARN: ${{ secrets.AWS_IAMROLE_ARN }}
-      DEV_AWS_TFVARS: ${{ secrets.DEV_AWS_TFVARS }}
+      # DEV_AWS_TFVARS: ${{ secrets.DEV_AWS_TFVARS }}
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}

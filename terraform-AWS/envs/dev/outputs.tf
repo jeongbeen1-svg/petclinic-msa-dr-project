@@ -17,6 +17,11 @@ output "vpn_tunnel2_preshared_key" {
   sensitive = true
 }
 
+output "cluster_name" {
+  value     = module.workload.cluster_name
+  sensitive = true
+}
+
 output "module" {
   value = {
     network  = module.network
