@@ -7,6 +7,7 @@ resource "aws_subnet" "public_0" {
 
   tags = {
     Name = "${local.namespace}-subnet-${local.subnet_public[0].name}"
+    "kubernetes.io/role/elb" = "1"
   }
 }
 
@@ -19,6 +20,7 @@ resource "aws_subnet" "public_1" {
 
   tags = {
     Name = "${local.namespace}-subnet-${local.subnet_public[1].name}"
+    "kubernetes.io/role/elb" = "1"
   }
 }
 
