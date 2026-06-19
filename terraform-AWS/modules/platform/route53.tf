@@ -12,39 +12,6 @@ resource "aws_route53_health_check" "aws_service" {
   request_interval  = "30"
 }
 
-# Primary 레코드 (AWS)
-resource "aws_route53_record" "primary" {
-  zone_id = aws_route53_zone.main.zone_id
-  name    = "www.${aws_route53_zone.main.name}"
-  type    = "A"
-  ttl     = 60
-  records = ["1.1.1.1"] # AWS 리소스 IP
-
-  weighted_routing_policy {
-    weight = 100
-  }
-
-  set_identifier = "aws-primary"
-  # 가중치 라우팅의 경우 helty한 리소스들 사이에서 가중치 비율 계산됨 (장애 조치 효과까지 가능)
-  health_check_id = aws_route53_health_check.aws_service.id
-}
-
-# Secondary 레코드 (Azure)
-resource "aws_route53_record" "secondary" {
-  zone_id = aws_route53_zone.main.zone_id
-  name    = "www.${aws_route53_zone.main.name}"
-  type    = "A"
-  ttl     = 60
-  records = ["2.2.2.2"] # Azure 리소스 IP
-
-  weighted_routing_policy {
-    weight = 0
-  }
-
-  set_identifier  = "azure-secondary"
-  health_check_id = aws_route53_health_check.aws_service.id
-}
-
 # ACR 인증서 생성 및 요청
 resource "aws_acm_certificate" "cert" {
   provider    = aws.us_east_1
@@ -131,4 +98,41 @@ resource "aws_cloudfront_distribution" "distribution" {
   }
 
   depends_on = [aws_acm_certificate_validation.cert]
+}
+
+# Primary 레코드 (AWS)
+resource "aws_route53_record" "primary" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "www.${aws_route53_zone.main.name}"
+  type    = "A"
+
+  alias {
+    name                   = aws_cloudfront_distribution.distribution.domain_name
+    zone_id                = aws_cloudfront_distribution.distribution.hosted_zone_id
+    evaluate_target_health = false
+  }
+
+  weighted_routing_policy {
+    weight = 100
+  }
+
+  set_identifier = "aws-primary"
+  # 가중치 라우팅의 경우 helty한 리소스들 사이에서 가중치 비율 계산됨 (장애 조치 효과까지 가능)
+  health_check_id = aws_route53_health_check.aws_service.id
+}
+
+# Secondary 레코드 (Azure)
+resource "aws_route53_record" "secondary" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "www.${aws_route53_zone.main.name}"
+  type    = "A"
+  ttl     = 60
+  records = ["2.2.2.2"] # Azure 리소스 IP
+
+  weighted_routing_policy {
+    weight = 0
+  }
+
+  set_identifier  = "azure-secondary"
+  health_check_id = aws_route53_health_check.aws_service.id
 }
