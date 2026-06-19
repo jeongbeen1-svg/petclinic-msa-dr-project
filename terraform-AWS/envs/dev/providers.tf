@@ -3,8 +3,9 @@ terraform {
 
   required_providers {
     aws = {
-      source  = "hashicorp/aws"
-      version = "~> 6.0"
+      source                = "hashicorp/aws"
+      version               = "~> 6.0"
+      configuration_aliases = [aws.us_east_1]
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
@@ -43,6 +44,12 @@ provider "aws" {
   }
 }
 
+# ACM을 위한 us-east-1 리전
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1"
+}
+
 # 쿠버네티스 프로바이더 정의
 # 방금 만든 EKS 클러스터의 주소와 인증서를 실시간으로 바인딩
 provider "kubernetes" {
@@ -73,7 +80,7 @@ provider "helm" {
 
 provider "kubectl" {
   host                   = module.workload.cluster_endpoint
-  cluster_ca_certificate = base64decode(module.workload.cluster_ca_certificate)
+  cluster_ca_certificate = base64decode(module.workload.cluster_ca)
   load_config_file       = false
 
   exec {

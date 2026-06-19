@@ -11,6 +11,10 @@ module "network" {
 module "platform" {
   source = "../../modules/platform"
 
+  providers = {
+    aws.us_east_1 = aws.us_east_1
+  }
+
   namespace      = local.namespace
   s3_bucket_name = local.bucket_name
 
