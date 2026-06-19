@@ -52,8 +52,8 @@ provider "kubernetes" {
   # AWS 로그인이 완료된 WSL 환경에서 자격증명을 자동으로 연동하기 위한 설정
   exec {
     api_version = "client.authentication.k8s.io/v1beta1"
-    args        = ["eks", "get-token", "--cluster-name", module.workload.cluster_name]
     command     = "aws"
+    args        = ["eks", "get-token", "--cluster-name", module.workload.cluster_name]
   }
 }
 
@@ -68,5 +68,17 @@ provider "helm" {
       args        = ["eks", "get-token", "--cluster-name", module.workload.cluster_name]
       command     = "aws"
     }
+  }
+}
+
+provider "kubectl" {
+  host                   = module.workload.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.workload.cluster_ca_certificate)
+  load_config_file       = false
+
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    args        = ["eks", "get-token", "--cluster-name", module.workload.cluster_name]
   }
 }
