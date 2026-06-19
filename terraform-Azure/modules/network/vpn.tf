@@ -71,7 +71,7 @@ resource "azurerm_virtual_network_gateway_connection" "aws" {
     ike_integrity    = "SHA256"
     ipsec_encryption = "AES256"
     ipsec_integrity  = "SHA256"
-    pfs_group        = "PFS2048"
+    pfs_group        = "PFS14"
   }
 
   lifecycle {
