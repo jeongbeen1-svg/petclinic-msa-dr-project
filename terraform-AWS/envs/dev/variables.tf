@@ -12,12 +12,12 @@ variable "additional_admin_arns" {
   EOT
   type        = list(string)
   # default     = []
-  default     = [
-    "arn:aws:iam::723165663216:role/oidc_for_youeo",
-    "arn:aws:iam::723165663216:user/kdt5"
-    # "arn:aws:iam::906336681755:user/ej_user",
-    # "arn:aws:iam::906336681755:user/jb_user",
-    # "arn:aws:iam::906336681755:user/dr_user"
+  default = [
+    "arn:aws:iam::723165663216:role/oidc_for_us",
+    "arn:aws:iam::906336681755:user/ej_user",
+    "arn:aws:iam::906336681755:user/jb_user",
+    "arn:aws:iam::906336681755:user/jbk_user",
+    "arn:aws:iam::906336681755:user/dr_user"
   ]
 }
 

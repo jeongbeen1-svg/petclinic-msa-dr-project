@@ -84,7 +84,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
         height = 6
         properties = {
           metrics = [
-            [ { "expression": "SEARCH('{AWS/Route53,HealthCheckId} MetricName=\"HealthCheckStatus\"', 'Average', 60)", "label": "DNS: &&-SCHEMA-REPLACEMENT-&&", "id": "dns1" } ]
+            [{ "expression" : "SEARCH('{AWS/Route53,HealthCheckId} MetricName=\"HealthCheckStatus\"', 'Average', 60)", "label" : "DNS: &&-SCHEMA-REPLACEMENT-&&", "id" : "dns1" }]
           ]
           period = 60
           region = "ap-northeast-2"
@@ -100,7 +100,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
         height = 6
         properties = {
           metrics = [
-            [ { "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_Target_5XX_Count\"', 'Sum', 60)", "label": "ALB 5XX: &&-SCHEMA-REPLACEMENT-&&", "id": "alb5xx", "color": "#d62728" } ]
+            [{ "expression" : "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_Target_5XX_Count\"', 'Sum', 60)", "label" : "ALB 5XX: &&-SCHEMA-REPLACEMENT-&&", "id" : "alb5xx", "color" : "#d62728" }]
           ]
           period = 60
           region = "ap-northeast-2"
@@ -116,7 +116,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
         height = 6
         properties = {
           metrics = [
-            [ { "expression": "SEARCH('{ContainerInsights,ClusterName} ClusterName=\"${module.workload.cluster_name}\" MetricName=\"cluster_failed_node_count\"', 'Maximum', 60)", "label": "Failed Nodes", "id": "k8sfail", "color": "#ff7f0e" } ]
+            [{ "expression" : "SEARCH('{ContainerInsights,ClusterName} ClusterName=\"${module.workload.cluster_name}\" MetricName=\"cluster_failed_node_count\"', 'Maximum', 60)", "label" : "Failed Nodes", "id" : "k8sfail", "color" : "#ff7f0e" }]
           ]
           period = 60
           region = "ap-northeast-2"
@@ -136,7 +136,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
         height = 6
         properties = {
           metrics = [
-            [ { "expression": "SEARCH('{AWS/ApplicationELB,TargetGroup} MetricName=\"HealthyHostCount\"', 'Average', 60)", "label": "🟢 Healthy: &&-SCHEMA-REPLACEMENT-&&", "id": "h1" } ]
+            [{ "expression" : "SEARCH('{AWS/ApplicationELB,TargetGroup} MetricName=\"HealthyHostCount\"', 'Average', 60)", "label" : "🟢 Healthy: &&-SCHEMA-REPLACEMENT-&&", "id" : "h1" }]
           ]
           period = 60
           region = "ap-northeast-2"
@@ -152,7 +152,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
         height = 6
         properties = {
           metrics = [
-            [ { "expression": "SEARCH('{AWS/ApplicationELB,TargetGroup} MetricName=\"UnHealthyHostCount\"', 'Average', 60)", "label": "🔴 UnHealthy: &&-SCHEMA-REPLACEMENT-&&", "id": "uh1", "color": "#d62728" } ]
+            [{ "expression" : "SEARCH('{AWS/ApplicationELB,TargetGroup} MetricName=\"UnHealthyHostCount\"', 'Average', 60)", "label" : "🔴 UnHealthy: &&-SCHEMA-REPLACEMENT-&&", "id" : "uh1", "color" : "#d62728" }]
           ]
           period = 60
           region = "ap-northeast-2"
@@ -168,7 +168,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
         height = 6
         properties = {
           metrics = [
-            [ { "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"RequestCount\"', 'Sum', 60)", "label": "Requests: &&-SCHEMA-REPLACEMENT-&&", "id": "req1" } ]
+            [{ "expression" : "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"RequestCount\"', 'Sum', 60)", "label" : "Requests: &&-SCHEMA-REPLACEMENT-&&", "id" : "req1" }]
           ]
           period = 60
           region = "ap-northeast-2"
@@ -184,7 +184,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
         height = 6
         properties = {
           metrics = [
-            [ { "expression": "SEARCH('{AWS/ApplicationELB,TargetGroup} MetricName=\"TargetResponseTime\"', 'Average', 60)", "label": "Latency: &&-SCHEMA-REPLACEMENT-&&", "id": "latency1" } ]
+            [{ "expression" : "SEARCH('{AWS/ApplicationELB,TargetGroup} MetricName=\"TargetResponseTime\"', 'Average', 60)", "label" : "Latency: &&-SCHEMA-REPLACEMENT-&&", "id" : "latency1" }]
           ]
           period = 60
           region = "ap-northeast-2"
@@ -200,7 +200,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
         height = 6
         properties = {
           metrics = [
-            [ { "expression": "SEARCH('{ContainerInsights,ClusterName} ClusterName=\"${module.workload.cluster_name}\" MetricName=\"node_cpu_utilization\"', 'Average', 60)", "label": "Node CPU: &&-SCHEMA-REPLACEMENT-&&", "id": "ncpu" } ]
+            [{ "expression" : "SEARCH('{ContainerInsights,ClusterName} ClusterName=\"${module.workload.cluster_name}\" MetricName=\"node_cpu_utilization\"', 'Average', 60)", "label" : "Node CPU: &&-SCHEMA-REPLACEMENT-&&", "id" : "ncpu" }]
           ]
           period = 60
           region = "ap-northeast-2"
@@ -216,7 +216,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
         height = 6
         properties = {
           metrics = [
-            [ { "expression": "SEARCH('{ContainerInsights,ClusterName} ClusterName=\"${module.workload.cluster_name}\" MetricName=\"node_memory_utilization\"', 'Average', 60)", "label": "Node Mem: &&-SCHEMA-REPLACEMENT-&&", "id": "nmem" } ]
+            [{ "expression" : "SEARCH('{ContainerInsights,ClusterName} ClusterName=\"${module.workload.cluster_name}\" MetricName=\"node_memory_utilization\"', 'Average', 60)", "label" : "Node Mem: &&-SCHEMA-REPLACEMENT-&&", "id" : "nmem" }]
           ]
           period = 60
           region = "ap-northeast-2"
@@ -232,7 +232,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
         height = 6
         properties = {
           metrics = [
-            [ { "expression": "SEARCH('{ContainerInsights,ClusterName,Namespace} ClusterName=\"${module.workload.cluster_name}\" MetricName=\"pod_number_of_container_restarts\"', 'Sum', 60)", "label": "Restart Count: &&-SCHEMA-REPLACEMENT-&&", "id": "podrest", "color": "#1f77b4" } ]
+            [{ "expression" : "SEARCH('{ContainerInsights,ClusterName,Namespace} ClusterName=\"${module.workload.cluster_name}\" MetricName=\"pod_number_of_container_restarts\"', 'Sum', 60)", "label" : "Restart Count: &&-SCHEMA-REPLACEMENT-&&", "id" : "podrest", "color" : "#1f77b4" }]
           ]
           period = 60
           region = "ap-northeast-2"
@@ -252,7 +252,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
         height = 6
         properties = {
           metrics = [
-            [ { "expression": "SEARCH('{ContainerInsights,ClusterName,Namespace,PodName} ClusterName=\"${module.workload.cluster_name}\" MetricName=\"pod_cpu_utilization\"', 'Average', 60)", "label": "Pod CPU: &&-SCHEMA-REPLACEMENT-&&", "id": "pcpu" } ]
+            [{ "expression" : "SEARCH('{ContainerInsights,ClusterName,Namespace,PodName} ClusterName=\"${module.workload.cluster_name}\" MetricName=\"pod_cpu_utilization\"', 'Average', 60)", "label" : "Pod CPU: &&-SCHEMA-REPLACEMENT-&&", "id" : "pcpu" }]
           ]
           period = 60
           region = "ap-northeast-2"
@@ -268,7 +268,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
         height = 6
         properties = {
           metrics = [
-            [ { "expression": "SEARCH('{ContainerInsights,ClusterName,Namespace,PodName} ClusterName=\"${module.workload.cluster_name}\" MetricName=\"pod_memory_utilization\"', 'Average', 60)", "label": "Pod Mem: &&-SCHEMA-REPLACEMENT-&&", "id": "pmem" } ]
+            [{ "expression" : "SEARCH('{ContainerInsights,ClusterName,Namespace,PodName} ClusterName=\"${module.workload.cluster_name}\" MetricName=\"pod_memory_utilization\"', 'Average', 60)", "label" : "Pod Mem: &&-SCHEMA-REPLACEMENT-&&", "id" : "pmem" }]
           ]
           period = 60
           region = "ap-northeast-2"
@@ -284,7 +284,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
         height = 6
         properties = {
           metrics = [
-            [ { "expression": "SEARCH('{AWS/RDS,DBInstanceIdentifier} DBInstanceIdentifier=petclinic MetricName=\"CPUUtilization\"', 'Average', 60)", "label": "DB CPU: &&-SCHEMA-REPLACEMENT-&&", "id": "rdscpu" } ]
+            [{ "expression" : "SEARCH('{AWS/RDS,DBInstanceIdentifier} DBInstanceIdentifier=petclinic MetricName=\"CPUUtilization\"', 'Average', 60)", "label" : "DB CPU: &&-SCHEMA-REPLACEMENT-&&", "id" : "rdscpu" }]
           ]
           period = 60
           region = "ap-northeast-2"
@@ -300,7 +300,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
         height = 6
         properties = {
           metrics = [
-            [ { "expression": "SEARCH('{AWS/RDS,DBInstanceIdentifier} DBInstanceIdentifier=petclinic MetricName=\"DatabaseConnections\"', 'Average', 60)", "label": "Connections: &&-SCHEMA-REPLACEMENT-&&", "id": "rdsconn", "color": "#9467bd" } ]
+            [{ "expression" : "SEARCH('{AWS/RDS,DBInstanceIdentifier} DBInstanceIdentifier=petclinic MetricName=\"DatabaseConnections\"', 'Average', 60)", "label" : "Connections: &&-SCHEMA-REPLACEMENT-&&", "id" : "rdsconn", "color" : "#9467bd" }]
           ]
           period = 60
           region = "ap-northeast-2"
@@ -316,7 +316,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
         height = 6
         properties = {
           metrics = [
-            [ { "expression": "SEARCH('{AWS/RDS,DBInstanceIdentifier} DBInstanceIdentifier=petclinic MetricName=\"ReplicationLag\"', 'Maximum', 60)", "label": "Lag Sec: &&-SCHEMA-REPLACEMENT-&&", "id": "rdslag", "color": "#e377c2" } ]
+            [{ "expression" : "SEARCH('{AWS/RDS,DBInstanceIdentifier} DBInstanceIdentifier=petclinic MetricName=\"ReplicationLag\"', 'Maximum', 60)", "label" : "Lag Sec: &&-SCHEMA-REPLACEMENT-&&", "id" : "rdslag", "color" : "#e377c2" }]
           ]
           period = 60
           region = "ap-northeast-2"
