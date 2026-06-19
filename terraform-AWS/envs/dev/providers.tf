@@ -65,15 +65,15 @@ provider "helm" {
 
     exec = {
       api_version = "client.authentication.k8s.io/v1beta1"
-      args        = ["eks", "get-token", "--cluster-name", module.workload.cluster_name]
       command     = "aws"
+      args        = ["eks", "get-token", "--cluster-name", module.workload.cluster_name]
     }
   }
 }
 
 provider "kubectl" {
   host                   = module.workload.cluster_endpoint
-  cluster_ca_certificate = base64decode(module.workload.cluster_ca_certificate)
+  cluster_ca_certificate = base64decode(module.workload.cluster_ca)
   load_config_file       = false
 
   exec {
