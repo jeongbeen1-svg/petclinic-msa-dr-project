@@ -73,13 +73,13 @@ locals {
 
   aws_vpn_tunnels = {
     tunnel-1 = {
-      local_network_gateway_name = "local-networ-gw-tunnel-1"
+      local_network_gateway_name = "local-networ-gw-tunnel-test-1"
       connection_name            = "vpn-conn"
       gateway_ip_address         = var.tunnel1_ip
       shared_key                 = var.tunnel1_key
     }
     tunnel-2 = {
-      local_network_gateway_name = "local-networ-gw-tunnel-2"
+      local_network_gateway_name = "local-networ-gw-tunnel-test-2"
       connection_name            = "vpn-conn2"
       gateway_ip_address         = var.tunnel2_ip
       shared_key                 = var.tunnel2_key
