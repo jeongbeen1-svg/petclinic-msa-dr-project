@@ -73,7 +73,7 @@ provider "helm" {
 
 provider "kubectl" {
   host                   = module.workload.cluster_endpoint
-  cluster_ca_certificate = base64decode(module.workload.cluster_ca)
+  cluster_ca_certificate = base64decode(module.workload.cluster_ca_certificate)
   load_config_file       = false
 
   exec {
