@@ -17,3 +17,8 @@ output "rds_database_name" {
 output "rds_username" {
   value = aws_db_instance.petclinic_db.username
 }
+
+output "acm_certificate_arn" {
+  description = "CloudFront 및 ALB에서 사용할 인증서 ARN"
+  value       = aws_acm_certificate_validation.cert.certificate_arn
+}

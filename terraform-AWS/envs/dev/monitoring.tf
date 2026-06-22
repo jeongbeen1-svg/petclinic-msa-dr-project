@@ -93,19 +93,21 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
         }
       },
       {
-        type   = "metric"
-        x      = 8
-        y      = 0
-        width  = 8
-        height = 6
-        properties = {
-          metrics = [
-            [{ "expression" : "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_Target_5XX_Count\"', 'Sum', 60)", "label" : "ALB 5XX: &&-SCHEMA-REPLACEMENT-&&", "id" : "alb5xx", "color" : "#d62728" }]
-          ]
-          period = 60
-          region = "ap-northeast-2"
-          title  = "🔥 1-2. ALB Target 5XX Error Rate (Critical Alert Trigger)"
-          view   = "timeSeries"
+      type   = "metric"
+      x      = 8
+      y      = 0
+      width  = 8
+      height = 6
+      properties = {
+        metrics = [
+           [{ "expression" : "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_Target_2XX_Count\"', 'Sum', 60)", "label" : "2XX: &&-SCHEMA-REPLACEMENT-&&", "id" : "alb2xx", "color" : "#2ca02c" }],
+           [{ "expression" : "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_Target_4XX_Count\"', 'Sum', 60)", "label" : "4XX: &&-SCHEMA-REPLACEMENT-&&", "id" : "alb4xx", "color" : "#ff7f0e" }],
+           [{ "expression" : "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_Target_5XX_Count\"', 'Sum', 60)", "label" : "5XX: &&-SCHEMA-REPLACEMENT-&&", "id" : "alb5xx", "color" : "#d62728" }]
+        ]
+        period = 60
+        region = "ap-northeast-2"
+        title  = "🎯 1-2. ALB Target Response Code Distribution (2XX/4XX/5XX)"
+        view   = "timeSeries"
         }
       },
       {
@@ -323,7 +325,57 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           title  = "🗄️ 3-5. RDS Cross-Region Replication Lag (DR Metric)"
           view   = "timeSeries"
         }
+      },
+    {
+      type   = "metric"
+      x      = 0
+      y      = 42
+      width  = 8
+      height = 6
+      properties = {
+        metrics = [
+          [{ "expression" : "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"RequestCount\"', 'Sum', 60) / 60", "label" : "TPS: &&-SCHEMA-REPLACEMENT-&&", "id" : "albtps" }]
+        ]
+        period = 60
+        region = "ap-northeast-2"
+        title  = "🌐 4-1. ALB Transactions Per Second"
+        view   = "timeSeries"
       }
-    ]
+    },
+    {
+    type   = "metric"
+    x      = 8
+    y      = 42
+    width  = 8
+    height = 6
+    properties = {
+      metrics = [
+        [{ "expression" : "SEARCH('{AWS/AutoScaling,AutoScalingGroupName} MetricName=\"GroupInServiceInstances\"', 'Average', 60)", "label" : "Running: &&-SCHEMA-REPLACEMENT-&&", "id" : "asgrun" }],
+        [{ "expression" : "SEARCH('{AWS/AutoScaling,AutoScalingGroupName} MetricName=\"GroupDesiredCapacity\"', 'Average', 60)", "label" : "Desired: &&-SCHEMA-REPLACEMENT-&&", "id" : "asgdes", "color" : "#9467bd" }]
+      ]
+      period = 60
+      region = "ap-northeast-2"
+      title  = "☸️ 4-2. EKS Node Group (ASG) Desired vs Running Capacity"
+      view   = "timeSeries"
+      }
+    },
+    {
+    type   = "metric"
+    x      = 16
+    y      = 42
+    width  = 8
+    height = 6
+    properties = {
+      metrics = [
+        [{ "expression" : "SEARCH('{AWS/RDS,DBInstanceIdentifier} DBInstanceIdentifier=petclinic MetricName=\"FreeableMemory\"', 'Average', 60)", "label" : "FreeMem: &&-SCHEMA-REPLACEMENT-&&", "id" : "rdsmem" }],
+        [{ "expression" : "SEARCH('{AWS/RDS,DBInstanceIdentifier} DBInstanceIdentifier=petclinic MetricName=\"FreeStorageSpace\"', 'Average', 60)", "label" : "FreeDisk: &&-SCHEMA-REPLACEMENT-&&", "id" : "rdsdisk", "color" : "#8c564b" }]
+      ]
+      period = 60
+      region = "ap-northeast-2"
+      title  = "🗄️ 4-3. RDS Memory & Storage Headroom"
+      view   = "timeSeries"
+      }
+    }
+  ]
   })
 }

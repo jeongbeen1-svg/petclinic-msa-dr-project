@@ -50,8 +50,14 @@ module "workload" {
     module.network.subnet["private-a"].id,
     module.network.subnet["private-c"].id
   ]
+  public_subnet_ids_lb = [
+    module.network.subnet["public-a"].id,
+    module.network.subnet["public-c"].id
+  ]
   public_subnet_id      = module.network.subnet["public-a"].id
   instance_type         = local.bastion.instance_type
   bastion_allowed_cidrs = local.bastion.allowed_cidrs
   all_admin_arns        = local.all_admin_arns
+
+  acm_certificate_arn = module.platform.acm_certificate_arn
 }
