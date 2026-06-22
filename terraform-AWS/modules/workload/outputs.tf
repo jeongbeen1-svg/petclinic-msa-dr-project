@@ -37,3 +37,11 @@ output "node_group_name" {
 output "iam_role_arn" {
   value = module.iam_assumable_role_external_secrets.iam_role_arn
 }
+
+output "ingress_dns_name" {
+  description = "ingress의 DNS 이름"
+  value = try(
+    kubernetes_ingress_v1.petclinic_ingress.status.0.load_balancer.0.ingress.0.hostname,
+    "ALB가 아직 생성 중입니다. 잠시 후 terraform refresh를 실행하세요."
+  )
+}

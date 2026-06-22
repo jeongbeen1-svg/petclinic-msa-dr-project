@@ -1,18 +1,4 @@
-resource "aws_route53_zone" "main" {
-  name = "ajean.shop"
-}
-
-# AWS 리소스 상태 확인(Health Check) 생성
-resource "aws_route53_health_check" "aws_service" {
-  fqdn              = "www.${aws_route53_zone.main.name}"
-  port              = 443
-  type              = "HTTPS"
-  resource_path     = "/"
-  failure_threshold = "3"
-  request_interval  = "30"
-}
-
-# ACR 인증서 생성 및 요청
+# ACR 인증서 생성 및 요청 (us)
 resource "aws_acm_certificate" "cert" {
   provider    = aws.us_east_1
   domain_name = "ajean.shop"
@@ -30,28 +16,23 @@ resource "aws_acm_certificate" "cert" {
 }
 
 # 인증서 검증을 위한 DNS 레코드 생성
-resource "aws_route53_record" "cert_validation" {
+resource "aws_route53_record" "cert_validation_us" {
+  provider = aws.us_east_1
   for_each = {
-    for dvo in aws_acm_certificate.cert.domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      record = dvo.resource_record_value
-      type   = dvo.resource_record_type
-    }
+    for dvo in aws_acm_certificate.cert.domain_validation_options : dvo.domain_name => dvo
   }
-
   allow_overwrite = true
-  zone_id         = aws_route53_zone.main.zone_id
-  name            = each.value.name
-  type            = each.value.type
-  records         = [each.value.record]
+  name            = each.value.resource_record_name
+  records         = [each.value.resource_record_value]
+  type            = each.value.resource_record_type
+  zone_id         = data.aws_route53_zone.ajean.zone_id
   ttl             = 60
 }
 
-# 검증 완료 대기 (이 리소스가 있어야 인증서가 발급될 때까지 테라폼이 기다림)
-resource "aws_acm_certificate_validation" "cert" {
+resource "aws_acm_certificate_validation" "cert_us" {
   provider                = aws.us_east_1
   certificate_arn         = aws_acm_certificate.cert.arn
-  validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
+  validation_record_fqdns = [for r in aws_route53_record.cert_validation_us : r.fqdn]
 }
 
 resource "aws_cloudfront_distribution" "distribution" {
@@ -59,15 +40,15 @@ resource "aws_cloudfront_distribution" "distribution" {
   default_root_object = "index.html"
   aliases             = ["www.ajean.shop"]
 
-  # Origin 설정 (Route 53에서 만든 도메인을 가리킴)
+  # Origin 설정 (내부 통신용 주소여야 함)
   origin {
-    domain_name = "www.ajean.shop"
+    domain_name = local.ingress_dns_name
     origin_id   = "my-app-origin"
 
     custom_origin_config {
       http_port              = 80
       https_port             = 443
-      origin_protocol_policy = "match-viewer"
+      origin_protocol_policy = "http-only"
       origin_ssl_protocols   = ["TLSv1.2"]
     }
   }
@@ -87,7 +68,7 @@ resource "aws_cloudfront_distribution" "distribution" {
 
   # 인증서 연결
   viewer_certificate {
-    acm_certificate_arn      = aws_acm_certificate_validation.cert.certificate_arn
+    acm_certificate_arn      = aws_acm_certificate_validation.cert_us.certificate_arn
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }
@@ -97,42 +78,45 @@ resource "aws_cloudfront_distribution" "distribution" {
     geo_restriction { restriction_type = "none" }
   }
 
-  depends_on = [aws_acm_certificate_validation.cert]
+  depends_on = [aws_acm_certificate_validation.cert_us]
+}
+
+# AWS 리소스 상태 확인(Health Check) 생성
+resource "aws_route53_health_check" "aws_service" {
+  fqdn              = "www.${data.aws_route53_zone.ajean.name}"
+  type              = "HTTPS"
+  resource_path     = "/"
+  failure_threshold = "3"
+  request_interval  = "30"
 }
 
 # Primary 레코드 (AWS)
 resource "aws_route53_record" "primary" {
-  zone_id = aws_route53_zone.main.zone_id
-  name    = "www.${aws_route53_zone.main.name}"
-  type    = "A"
+  zone_id = data.aws_route53_zone.ajean.zone_id
+  name    = "www"
+  type    = "CNAME"
+  ttl     = 60
+  records = [aws_cloudfront_distribution.distribution.domain_name]
 
-  alias {
-    name                   = aws_cloudfront_distribution.distribution.domain_name
-    zone_id                = aws_cloudfront_distribution.distribution.hosted_zone_id
-    evaluate_target_health = false
+  failover_routing_policy {
+    type = "PRIMARY"
   }
 
-  weighted_routing_policy {
-    weight = 100
-  }
-
-  set_identifier = "aws-primary"
-  # 가중치 라우팅의 경우 helty한 리소스들 사이에서 가중치 비율 계산됨 (장애 조치 효과까지 가능)
+  set_identifier  = "aws-primary"
   health_check_id = aws_route53_health_check.aws_service.id
 }
 
-# Secondary 레코드 (Azure)
+# Secondary 레코드 (정적 웹 호스팅 -> 장애 복구 완료 후 Azure)
 resource "aws_route53_record" "secondary" {
-  zone_id = aws_route53_zone.main.zone_id
-  name    = "www.${aws_route53_zone.main.name}"
-  type    = "A"
+  zone_id = data.aws_route53_zone.ajean.zone_id
+  name    = "www"
+  type    = "CNAME"
   ttl     = 60
-  records = ["2.2.2.2"] # Azure 리소스 IP
+  records = ["tf-core-error.s3-website.ap-northeast-2.amazonaws.com"]
 
-  weighted_routing_policy {
-    weight = 0
+  failover_routing_policy {
+    type = "SECONDARY"
   }
 
-  set_identifier  = "azure-secondary"
-  health_check_id = aws_route53_health_check.aws_service.id
+  set_identifier = "azure-secondary"
 }

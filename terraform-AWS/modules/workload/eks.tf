@@ -247,7 +247,8 @@ resource "aws_eks_node_group" "system" {
     min_size     = 0
   }
 
-  instance_types = ["t3.large"]
+  # m 시리즈가 t 시리즈보다 안정적 (고정 성능이라 에이전트같은 상시 서비스가 안정적임)
+  instance_types = ["m5.large"]
 
   # 템플릿을 노드 그룹에 연결
   launch_template {
@@ -268,11 +269,6 @@ resource "aws_eks_node_group" "system" {
   }
 
   depends_on = [aws_iam_role_policy_attachment.node_policies]
-}
-
-resource "aws_autoscaling_attachment" "asg_attachment" {
-  autoscaling_group_name = aws_eks_node_group.system.resources[0].autoscaling_groups[0].name
-  lb_target_group_arn    = aws_lb_target_group.petclinic.arn
 }
 
 # ALB Ingress Controller용 인라인 정책

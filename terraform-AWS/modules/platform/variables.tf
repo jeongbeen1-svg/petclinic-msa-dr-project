@@ -41,3 +41,7 @@ variable "target_password" {
 variable "target_db_address" {
   type = string
 }
+
+variable "ingress_dns_name" {
+  type = string
+}

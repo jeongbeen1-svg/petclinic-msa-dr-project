@@ -12,4 +12,6 @@ locals {
   target_username   = var.target_username
   target_password   = var.target_password
   target_db_address = var.target_db_address
+
+  ingress_dns_name = var.ingress_dns_name
 }

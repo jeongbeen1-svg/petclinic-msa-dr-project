@@ -60,7 +60,8 @@ resource "azurerm_virtual_network_gateway_connection" "aws" {
   local_network_gateway_id   = azurerm_local_network_gateway.aws[each.key].id
   shared_key                 = coalesce(each.value.shared_key, "managed-outside-terraform")
 
-  connection_protocol = "IKEv2"
+  # 재연결 시 IKEv을 1->2 또는 2->1로 바꿔서 재배포
+  connection_protocol = "IKEv1"
   dpd_timeout_seconds = 45
   bgp_enabled         = false
   routing_weight      = 0

@@ -44,6 +44,4 @@ locals {
   ])
 
   ecr_registry = "906336681755.dkr.ecr.ap-northeast-2.amazonaws.com"
-
-  acm_certificate_arn = var.acm_certificate_arn
 }

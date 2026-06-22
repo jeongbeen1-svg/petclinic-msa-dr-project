@@ -12,6 +12,7 @@ module "platform" {
   source = "../../modules/platform"
 
   providers = {
+    aws.default   = aws
     aws.us_east_1 = aws.us_east_1
   }
 
@@ -36,6 +37,8 @@ module "platform" {
   target_username   = local.target_username
   target_password   = local.target_password
   target_db_address = local.target_db_address
+
+  ingress_dns_name = module.workload.ingress_dns_name
 }
 
 module "workload" {
@@ -58,6 +61,4 @@ module "workload" {
   instance_type         = local.bastion.instance_type
   bastion_allowed_cidrs = local.bastion.allowed_cidrs
   all_admin_arns        = local.all_admin_arns
-
-  acm_certificate_arn = module.platform.acm_certificate_arn
 }
