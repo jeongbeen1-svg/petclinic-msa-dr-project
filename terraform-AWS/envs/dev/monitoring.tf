@@ -39,6 +39,9 @@ metadata:
 spec:
   secretName: "whatap-credentials"
   features:
+    appAgent:
+      enabled: true
+      image: "public.ecr.aws/whatap/whatap-agent:latest"
     k8sAgent:
       customAgentImageFullName: "public.ecr.aws/whatap/kube_mon:1.8.7"
       gpuMonitoring:
