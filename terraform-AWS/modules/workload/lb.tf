@@ -32,7 +32,7 @@ resource "aws_lb" "alb" {
 
 resource "aws_lb_target_group" "petclinic" {
   name        = "petclinic-tg"
-  port        = 80
+  port        = 8080
   protocol    = "HTTP"
   vpc_id      = local.vpc_id
   target_type = "instance" # 포드 IP가 아닌 노드(인스턴스) 대상
