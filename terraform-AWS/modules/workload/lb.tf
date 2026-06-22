@@ -52,12 +52,12 @@ resource "aws_lb_listener" "https" {
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
   # 인증서 바인딩
-  certificate_arn   = local.acm_certificate_arn
+  certificate_arn = local.acm_certificate_arn
 
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.petclinic.arn
   }
-  
+
   depends_on = [local.acm_certificate_arn]
 }
