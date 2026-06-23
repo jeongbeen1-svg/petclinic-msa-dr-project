@@ -1,3 +1,9 @@
+resource "kubernetes_namespace" "petclinic" {
+  metadata {
+    name = "petclinic"
+  }
+}
+
 resource "kubernetes_ingress_v1" "petclinic_ingress" {
   metadata {
     name      = "petclinic-ingress"
@@ -29,4 +35,6 @@ resource "kubernetes_ingress_v1" "petclinic_ingress" {
       }
     }
   }
+
+  depends_on = [kubernetes_namespace.petclinic]
 }

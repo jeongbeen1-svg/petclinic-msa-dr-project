@@ -61,7 +61,7 @@ resource "azurerm_virtual_network_gateway_connection" "aws" {
   shared_key                 = coalesce(each.value.shared_key, "managed-outside-terraform")
 
   # 재연결 시 IKEv을 1->2 또는 2->1로 바꿔서 재배포
-  connection_protocol = "IKEv1"
+  connection_protocol = "IKEv2"
   dpd_timeout_seconds = 45
   bgp_enabled         = false
   routing_weight      = 0

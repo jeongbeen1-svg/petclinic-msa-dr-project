@@ -33,6 +33,37 @@ resource "helm_release" "argocd" {
   ]
 }
 
+# resource "kubernetes_manifest" "root_application" {
+#   manifest = {
+#     apiVersion = "argoproj.io/v1alpha1"
+#     kind       = "Application"
+#     metadata = {
+#       name      = "root-application"
+#       namespace = "argocd"
+#     }
+#     spec = {
+#       project = "default"
+#       source = {
+#         repoURL        = "https://github.com/bespin-multi-cloud-3-aws/application.git"
+#         targetRevision = "HEAD"
+#         path           = "awsyaml"
+#       }
+#       destination = {
+#         server    = "https://kubernetes.default.svc"
+#         namespace = "argocd"
+#       }
+#       syncPolicy = {
+#         automated = {
+#           prune    = true
+#           selfHeal = true
+#         }
+#       }
+#     }
+#   }
+
+#   depends_on = [helm_release.argocd] 
+# }
+
 # workload/autoscaler.tf
 resource "helm_release" "cluster_autoscaler" {
   name       = "cluster-autoscaler"
