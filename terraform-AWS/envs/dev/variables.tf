@@ -48,6 +48,6 @@ variable "additional_admin_arns" {
 variable "whatap_license" {
   type        = string
   description = "WhaTap Project License Key"
-  default     = "x6063to8edart-z1thjg1l9pk1eb-x6chd41ba1t56r"
+  default     = "x6063qc8dd8at-x5v02c83h07tsu-z4mg3aic9sktc8"
 }
 
