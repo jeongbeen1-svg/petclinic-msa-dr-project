@@ -1,10 +1,13 @@
-# ACR 인증서 생성 및 요청 (us)
+# ==========================================
+# 1. ACM 인증서 생성 및 Route53 검증 설정
+# ==========================================
+
+# ACM 인증서 생성 및 요청 (us-east-1)
 resource "aws_acm_certificate" "cert" {
-  provider    = aws.us_east_1
-  domain_name = "ajean.shop"
-  # 인증서가 여러 도메인을 모두 포함하도록 설정
+  provider                  = aws.us_east_1
+  domain_name               = "ajean.shop"
   subject_alternative_names = ["*.ajean.shop"]
-  validation_method         = "DNS" # DNS 방식을 권장
+  validation_method         = "DNS"
 
   tags = {
     Name = "my-certificate"
@@ -29,58 +32,28 @@ resource "aws_route53_record" "cert_validation_us" {
   ttl             = 60
 }
 
+# 인증서 검증 완료 리소스
 resource "aws_acm_certificate_validation" "cert_us" {
   provider                = aws.us_east_1
   certificate_arn         = aws_acm_certificate.cert.arn
   validation_record_fqdns = [for r in aws_route53_record.cert_validation_us : r.fqdn]
 }
 
-# CloudFront - DNS
-resource "aws_cloudfront_distribution" "distribution" {
-  enabled             = true
-  default_root_object = "index.html"
-  aliases             = ["www.ajean.shop"]
-
-  # Origin 설정 (내부 통신용 주소여야 함)
-  origin {
-    domain_name = local.ingress_dns_name
-    origin_id   = "my-app-origin"
-
-    custom_origin_config {
-      http_port              = 80
-      https_port             = 443
-      origin_protocol_policy = "http-only"
-      origin_ssl_protocols   = ["TLSv1.2"]
-    }
-  }
-
-  # 기본 캐시 동작
-  default_cache_behavior {
-    allowed_methods  = ["GET", "HEAD"]
-    cached_methods   = ["GET", "HEAD"]
-    target_origin_id = "my-app-origin"
-
-    forwarded_values {
-      query_string = false
-      cookies { forward = "none" }
-    }
-    viewer_protocol_policy = "redirect-to-https"
-  }
-
-  # 인증서 연결
-  viewer_certificate {
-    acm_certificate_arn      = aws_acm_certificate_validation.cert_us.certificate_arn
-    ssl_support_method       = "sni-only"
-    minimum_protocol_version = "TLSv1.2_2021"
-  }
-
-  # 차단 정책 (Geo Restriction)
-  restrictions {
-    geo_restriction { restriction_type = "none" }
-  }
-
-  depends_on = [aws_acm_certificate_validation.cert_us]
+# ==========================================
+# ⭐️ [신규 추가] Azure IP 우회용 Route53 레코드
+# ==========================================
+resource "aws_route53_record" "azure_origin_dns" {
+  zone_id = data.aws_route53_zone.ajean.zone_id
+  name    = "origin-azure" # 자동으로 origin-azure.ajean.shop 이 됩니다.
+  type    = "A"
+  ttl     = 60
+  records = ["20.214.115.134"] # Azure 로드밸런서 IP
 }
+
+
+# ==========================================
+# CloudFront 및 Route53 도메인 연결 설정
+# ==========================================
 
 resource "aws_cloudfront_origin_access_control" "s3_oac" {
   name                              = "s3-oac"
@@ -89,55 +62,8 @@ resource "aws_cloudfront_origin_access_control" "s3_oac" {
   signing_protocol                  = "sigv4"
 }
 
-# CloudFront - S3
-resource "aws_cloudfront_distribution" "s3_dist" {
-  origin {
-    domain_name              = "www.ajean.shop.s3.ap-northeast-2.amazonaws.com"
-    origin_id                = "S3-www.ajean.shop"
-
-    origin_access_control_id = aws_cloudfront_origin_access_control.s3_oac.id
-    
-    s3_origin_config {
-      origin_access_identity = "" 
-    }
-  }
-
-  enabled             = true
-  default_root_object = "index.html"
-
-  default_cache_behavior {
-    allowed_methods  = ["GET", "HEAD"]
-    cached_methods   = ["GET", "HEAD"]
-    target_origin_id = "S3-www.ajean.shop"
-
-    forwarded_values {
-      query_string = false
-      cookies { forward = "none" }
-    }
-    viewer_protocol_policy = "redirect-to-https" # HTTP 접속 시 HTTPS로 강제 리다이렉트
-  }
-
-  restrictions {
-    geo_restriction { restriction_type = "none" }
-  }
-
-  viewer_certificate {
-    cloudfront_default_certificate = true # 기본 인증서 사용 (개인 도메인 연결 시 ACM 인증서 ID로 교체 필요)
-  }
-}
-
-# AWS 리소스 상태 확인(Health Check) 생성
-resource "aws_route53_health_check" "aws_service" {
-  fqdn              = aws_cloudfront_distribution.distribution.domain_name
-  type              = "HTTPS"
-  port              = 443
-  resource_path     = "/"
-  failure_threshold = "2"
-  request_interval  = "30"
-}
-
-# Primary 레코드 (CloudFront -> ALB)
-resource "aws_route53_record" "primary" {
+# www.ajean.shop 도메인을 CloudFront에 연결
+resource "aws_route53_record" "www" {
   zone_id = data.aws_route53_zone.ajean.zone_id
   name    = "www"
   type    = "A"
@@ -145,33 +71,92 @@ resource "aws_route53_record" "primary" {
   alias {
     name                   = aws_cloudfront_distribution.distribution.domain_name
     zone_id                = aws_cloudfront_distribution.distribution.hosted_zone_id
-    # 테스트용으로 false 처리
     evaluate_target_health = false
-  }
-
-  set_identifier  = "aws-primary"
-  health_check_id = aws_route53_health_check.aws_service.id
-  
-  failover_routing_policy {
-    type = "PRIMARY"
   }
 }
 
-# Secondary 레코드 (CloudFront -> S3)
-resource "aws_route53_record" "secondary" {
-  zone_id = data.aws_route53_zone.ajean.zone_id
-  name    = "www"
-  type    = "A"
 
-  alias {
-    name                   = aws_cloudfront_distribution.s3_dist.domain_name
-    zone_id                = aws_cloudfront_distribution.s3_dist.hosted_zone_id # CloudFront 고유 Zone ID 자동 참조
-    evaluate_target_health = false
+
+# CloudFront 디스트리뷰션 설정
+resource "aws_cloudfront_distribution" "distribution" {
+  enabled             = true
+  default_root_object = "index.html"
+  aliases             = ["www.ajean.shop"]
+
+  # 📍 [오리진 1] 메인 백엔드 (이관 단계에 따라 아래 주석을 켜고 끄세요)
+  origin {
+    # --------------------------------==================================
+    # [1단계 / 3단계 Failback] 평소 AWS 운영 및 장애 복구 시 아래 주석을 켜세요
+    #domain_name = local.ingress_dns_name 
+    
+    # [2단계] Azure 이관 준비가 완료되면 위를 주석 처리하고 아래 주석을 켜세요
+     domain_name = aws_route53_record.azure_origin_dns.fqdn
+    # --------------------------------==================================
+
+    origin_id   = "my-app-origin"
+
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "http-only" 
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
   }
 
-  set_identifier  = "azure-secondary"
+  # [오리진 2] 대기실 (S3 정적 웹 호스팅 엔드포인트)
+  origin {
+    domain_name = "www.ajean.shop.s3-website.ap-northeast-2.amazonaws.com"
+    origin_id   = "S3-Website-Origin"
 
-  failover_routing_policy {
-    type = "SECONDARY"
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "http-only" 
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
   }
+
+  # 오리진 그룹 생성 (Primary 장애 시 S3 대기실로 자동 우회)
+  origin_group {
+    origin_id = "failover-origin-group"
+
+    failover_criteria {
+      status_codes = [500, 502, 503, 504] 
+    }
+
+    member {
+      origin_id = "my-app-origin"       # 1순위 타겟 (AWS 혹은 Azure)
+    }
+    member {
+      origin_id = "S3-Website-Origin"   # 2순위 타겟 (S3 대기실)
+    }
+  }
+
+  # 라우팅 룰 설정 (오리진 그룹 지정)
+  default_cache_behavior {
+    allowed_methods  = ["GET", "HEAD"] 
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id = "failover-origin-group" 
+
+    forwarded_values {
+      query_string = true
+      headers      = ["*"] 
+      cookies { 
+        forward = "all" 
+      }
+    }
+    viewer_protocol_policy = "redirect-to-https" 
+  }
+
+  viewer_certificate {
+    acm_certificate_arn      = aws_acm_certificate_validation.cert_us.certificate_arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
+  }
+
+  restrictions {
+    geo_restriction { restriction_type = "none" }
+  }
+
+  depends_on = [aws_acm_certificate_validation.cert_us]
 }
