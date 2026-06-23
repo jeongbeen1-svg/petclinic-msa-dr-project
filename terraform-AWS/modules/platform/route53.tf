@@ -85,6 +85,7 @@ resource "aws_cloudfront_distribution" "distribution" {
 resource "aws_route53_health_check" "aws_service" {
   fqdn              = "www.${data.aws_route53_zone.ajean.name}"
   type              = "HTTPS"
+  port              = 443
   resource_path     = "/"
   failure_threshold = "3"
   request_interval  = "30"
