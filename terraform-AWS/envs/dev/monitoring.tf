@@ -408,7 +408,8 @@ resource "aws_chatbot_slack_channel_configuration" "slack_alarm" {
   slack_team_id      = "T0BB1N1H97X" # AWS 콘솔에 연동된 슬랙 워크스페이스 ID 입력
 
   sns_topic_arns = [
-    aws_sns_topic.route53_healthcheck_alarm.arn
+    aws_sns_topic.route53_healthcheck_alarm.arn,
+    aws_sns_topic.cloudfront_5xx_alarm.arn
   ]
 }
 
@@ -437,6 +438,12 @@ resource "aws_sns_topic" "route53_healthcheck_alarm" {
   provider = aws.us_east_1
   name     = "${local.namespace}-route53-healthcheck-alarm"
 }
+
+resource "aws_sns_topic" "cloudfront_5xx_alarm" {
+  provider = aws.us_east_1
+  name     = "${local.namespace}-cloudfront-5xx-alarm"
+}
+
 # ==========================================
 # 2. 지표별 CloudWatch Alarm 구성
 # ==========================================
@@ -458,10 +465,35 @@ resource "aws_cloudwatch_metric_alarm" "route53_healthcheck_unhealthy" {
   dimensions = {
     HealthCheckId = module.platform.route53_health_check_id
   }
-  
-  alarm_description   = "Route 53 health check ${module.platform.route53_health_check_id} is unhealthy."
+
+  alarm_description = "Route 53 health check ${module.platform.route53_health_check_id} is unhealthy."
 
   alarm_actions             = [aws_sns_topic.route53_healthcheck_alarm.arn]
   ok_actions                = [aws_sns_topic.route53_healthcheck_alarm.arn]
   insufficient_data_actions = [aws_sns_topic.route53_healthcheck_alarm.arn]
+}
+
+# CloudFront 5xx error rate alarm
+resource "aws_cloudwatch_metric_alarm" "cloudfront_5xx_error_rate_high" {
+  provider = aws.us_east_1
+
+  alarm_name          = "${local.namespace}-cloudfront-5xx-error-rate-high"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "5xxErrorRate"
+  namespace           = "AWS/CloudFront"
+  period              = 60 # 60 seconds
+  statistic           = "Average"
+  threshold           = 80 # 80%
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    DistributionId = module.platform.cloudfront_distribution_id
+    Region         = "Global"
+  }
+
+  alarm_description = "CloudFront distribution ${module.platform.cloudfront_distribution_id} returned 5xx errors above 80% for 60 seconds."
+
+  alarm_actions = [aws_sns_topic.cloudfront_5xx_alarm.arn]
+  ok_actions    = [aws_sns_topic.cloudfront_5xx_alarm.arn]
 }

@@ -21,3 +21,7 @@ output "rds_username" {
 output "route53_health_check_id" {
   value = aws_route53_health_check.aws_service.id
 }
+
+output "cloudfront_distribution_id" {
+  value = aws_cloudfront_distribution.distribution.id
+}
