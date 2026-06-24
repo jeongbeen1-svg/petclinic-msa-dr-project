@@ -6,7 +6,8 @@ resource "aws_subnet" "public_0" {
   map_public_ip_on_launch = local.subnet_public[0].map_public_ip_on_launch
 
   tags = {
-    Name = "${local.namespace}-subnet-${local.subnet_public[0].name}"
+    Name                     = "${local.namespace}-subnet-${local.subnet_public[0].name}"
+    "kubernetes.io/role/elb" = "1"
   }
 }
 
@@ -18,7 +19,8 @@ resource "aws_subnet" "public_1" {
   map_public_ip_on_launch = local.subnet_public[1].map_public_ip_on_launch
 
   tags = {
-    Name = "${local.namespace}-subnet-${local.subnet_public[1].name}"
+    Name                     = "${local.namespace}-subnet-${local.subnet_public[1].name}"
+    "kubernetes.io/role/elb" = "1"
   }
 }
 
@@ -102,14 +104,14 @@ resource "aws_route_table" "public_0" {
     gateway_id = aws_internet_gateway.this.id
   }
 
-  tags = {
-    Name = "${local.namespace}-rtb-${local.subnet_public[0].name}"
+  # azure로의 경로
+  route {
+    cidr_block = local.azure_ip_cidr_block
+    gateway_id = aws_vpn_gateway.vpn_gw.id
   }
 
-  lifecycle {
-    ignore_changes = [
-      route,
-    ]
+  tags = {
+    Name = "${local.namespace}-rtb-${local.subnet_public[0].name}"
   }
 }
 
@@ -121,14 +123,13 @@ resource "aws_route_table" "public_1" {
     gateway_id = aws_internet_gateway.this.id
   }
 
-  tags = {
-    Name = "${local.namespace}-rtb-${local.subnet_public[1].name}"
+  route {
+    cidr_block = local.azure_ip_cidr_block
+    gateway_id = aws_vpn_gateway.vpn_gw.id
   }
 
-  lifecycle {
-    ignore_changes = [
-      route,
-    ]
+  tags = {
+    Name = "${local.namespace}-rtb-${local.subnet_public[1].name}"
   }
 }
 
@@ -143,12 +144,6 @@ resource "aws_route_table" "private_0" {
   tags = {
     Name = "${local.namespace}-rtb-${local.subnet_private[0].name}"
   }
-
-  lifecycle {
-    ignore_changes = [
-      route,
-    ]
-  }
 }
 
 resource "aws_route_table" "private_1" {
@@ -161,12 +156,6 @@ resource "aws_route_table" "private_1" {
 
   tags = {
     Name = "${local.namespace}-rtb-${local.subnet_private[1].name}"
-  }
-
-  lifecycle {
-    ignore_changes = [
-      route,
-    ]
   }
 }
 
@@ -181,12 +170,6 @@ resource "aws_route_table" "private_db" {
   tags = {
     Name = "${local.namespace}-rtb-private-db"
   }
-
-  lifecycle {
-    ignore_changes = [
-      route,
-    ]
-  }
 }
 
 resource "aws_route_table" "private_dms" {
@@ -197,14 +180,13 @@ resource "aws_route_table" "private_dms" {
     nat_gateway_id = aws_nat_gateway.this.id
   }
 
-  tags = {
-    Name = "${local.namespace}-rtb-dms"
+  route {
+    cidr_block = local.azure_ip_cidr_block
+    gateway_id = aws_vpn_gateway.vpn_gw.id
   }
 
-  lifecycle {
-    ignore_changes = [
-      route,
-    ]
+  tags = {
+    Name = "${local.namespace}-rtb-dms"
   }
 }
 

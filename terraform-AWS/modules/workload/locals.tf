@@ -24,6 +24,7 @@ locals {
 
   vpc_id                = var.vpc_id
   private_subnet_ids    = var.private_subnet_ids
+  public_subnet_ids_lb  = var.public_subnet_ids_lb
   public_subnet_id      = var.public_subnet_id
   instance_type         = var.instance_type
   bastion_allowed_cidrs = var.bastion_allowed_cidrs

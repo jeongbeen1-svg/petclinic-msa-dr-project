@@ -14,6 +14,10 @@ variable "private_subnet_ids" {
   type = list(string)
 }
 
+variable "public_subnet_ids_lb" {
+  type = list(string)
+}
+
 variable "public_subnet_id" {
   type = string
 }

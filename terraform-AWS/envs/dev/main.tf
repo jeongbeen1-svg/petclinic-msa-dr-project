@@ -1,16 +1,20 @@
 module "network" {
   source = "../../modules/network"
 
-  namespace                              = local.namespace
+  namespace = local.namespace
+
+  azure_vpn_gateway_public_ip            = local.azure_vpn.vpn_gateway_public_ip
+  azure_ip_cidr_block                    = local.azure_vpn.vnet_cidr
   azure_private_dns_resolver_inbound_ips = local.azure_private_dns_resolver.inbound_ips
-  azure_customer_gateway_ip_address      = local.azure_vpn.gateway_ip_address
-  azure_vnet_cidr                        = local.azure_vpn.vnet_cidr
-  azure_vpn_tunnel1_preshared_key        = var.azure_vpn_tunnel1_preshared_key
-  azure_vpn_tunnel2_preshared_key        = var.azure_vpn_tunnel2_preshared_key
 }
 
 module "platform" {
   source = "../../modules/platform"
+
+  providers = {
+    aws.default   = aws
+    aws.us_east_1 = aws.us_east_1
+  }
 
   namespace      = local.namespace
   s3_bucket_name = local.bucket_name
@@ -30,9 +34,11 @@ module "platform" {
     module.network.subnet["private-c-dms"].id
   ]
 
-  target_username   = "petclinicadmin"
-  target_password   = var.azure_mysql_password
-  target_db_address = "tfcorejaebok1205testdevmysql.mysql.database.azure.com"
+  target_username   = local.target_username
+  target_password   = local.target_password
+  target_db_address = local.target_db_address
+
+  ingress_dns_name = module.workload.ingress_dns_name
 }
 
 module "workload" {
@@ -46,6 +52,10 @@ module "workload" {
   private_subnet_ids = [
     module.network.subnet["private-a"].id,
     module.network.subnet["private-c"].id
+  ]
+  public_subnet_ids_lb = [
+    module.network.subnet["public-a"].id,
+    module.network.subnet["public-c"].id
   ]
   public_subnet_id      = module.network.subnet["public-a"].id
   instance_type         = local.bastion.instance_type

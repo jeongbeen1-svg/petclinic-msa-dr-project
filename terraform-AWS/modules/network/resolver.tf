@@ -26,7 +26,7 @@ resource "aws_security_group" "resolver_outbound" {
     from_port   = 53
     to_port     = 53
     protocol    = "tcp"
-    cidr_blocks = [for ip in var.azure_private_dns_resolver_inbound_ips : "${ip}/32"]
+    cidr_blocks = [for ip in local.azure_private_dns_resolver_inbound_ips : "${ip}/32"]
   }
 
   egress {
@@ -34,7 +34,7 @@ resource "aws_security_group" "resolver_outbound" {
     from_port   = 53
     to_port     = 53
     protocol    = "udp"
-    cidr_blocks = [for ip in var.azure_private_dns_resolver_inbound_ips : "${ip}/32"]
+    cidr_blocks = [for ip in local.azure_private_dns_resolver_inbound_ips : "${ip}/32"]
   }
 
   tags = {
@@ -53,11 +53,10 @@ resource "aws_route53_resolver_endpoint" "azure_outbound" {
   ]
 
   ip_address {
-    subnet_id = aws_subnet.private_0.id
+    subnet_id = aws_subnet.private_4.id
   }
-
   ip_address {
-    subnet_id = aws_subnet.private_1.id
+    subnet_id = aws_subnet.private_5.id
   }
 
   tags = {
@@ -74,7 +73,7 @@ resource "aws_route53_resolver_rule" "azure_mysql" {
   resolver_endpoint_id = aws_route53_resolver_endpoint.azure_outbound[0].id
 
   dynamic "target_ip" {
-    for_each = var.azure_private_dns_resolver_inbound_ips
+    for_each = local.azure_private_dns_resolver_inbound_ips
 
     content {
       ip = target_ip.value

@@ -35,17 +35,13 @@ variable "target_username" {
 }
 
 variable "target_password" {
-  type      = string
-  sensitive = true
+  type = string
 }
 
 variable "target_db_address" {
   type = string
 }
 
-variable "rds_mysql_password" {
-  type        = string
-  description = "Source RDS MySQL password used by AWS DMS."
-  sensitive   = true
-  default     = "data1234!"
+variable "ingress_dns_name" {
+  type = string
 }

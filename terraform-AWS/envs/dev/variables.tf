@@ -11,32 +11,43 @@ variable "additional_admin_arns" {
       ]
   EOT
   type        = list(string)
-  default     = []
+  # default     = []
+  default = [
+    "arn:aws:iam::906336681755:role/oidc_for_us",
+    "arn:aws:iam::906336681755:user/ej_user",
+    "arn:aws:iam::906336681755:user/jb_user",
+    "arn:aws:iam::906336681755:user/jbk_user",
+    "arn:aws:iam::906336681755:user/dr_user"
+  ]
 }
 
-variable "azure_vpn_tunnel1_preshared_key" {
+# variable "target_username" {
+#   type = string
+# }
+
+# variable "target_password" {
+#   type = string
+# }
+
+# variable "target_db_address" {
+#   type = string
+# }
+
+# variable "azure_vnet_cidr" {
+#   type = string
+# }
+
+# variable "azure_vpn_gw_pip" {
+#   type = string
+# }
+
+# variable "azure_inbound_ips" {
+#   type = string
+# }
+
+variable "whatap_license" {
   type        = string
-  description = "Pre-shared key for AWS-to-Azure VPN tunnel 1. Existing imported VPN connections ignore key drift."
-  sensitive   = true
-  default     = null
+  description = "WhaTap Project License Key"
+  default     = "x6063qc8dd8at-x5v02c83h07tsu-z4mg3aic9sktc8"
 }
 
-variable "azure_vpn_tunnel2_preshared_key" {
-  type        = string
-  description = "Pre-shared key for AWS-to-Azure VPN tunnel 2. Existing imported VPN connections ignore key drift."
-  sensitive   = true
-  default     = null
-}
-
-variable "azure_mysql_password" {
-  type        = string
-  description = "Azure Database for MySQL password used by AWS DMS target endpoints."
-  sensitive   = true
-  default     = "password1!"
-  nullable    = false
-
-  validation {
-    condition     = length(trimspace(var.azure_mysql_password)) > 0
-    error_message = "azure_mysql_password must not be blank. Set TF_VAR_azure_mysql_password before running terraform apply."
-  }
-}

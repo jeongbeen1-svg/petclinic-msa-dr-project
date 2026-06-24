@@ -7,12 +7,16 @@ resource "azurerm_kubernetes_cluster" "main" {
   private_cluster_enabled = false
 
   default_node_pool {
-    name                 = "system"
-    vm_size              = "Standard_D2s_v3"
+    name = "system"
+    # vm_size              = "Standard_D2s_v3"
+    vm_size              = "Standard_B2s_v2"
     vnet_subnet_id       = var.private_subnet_ids[0]
     auto_scaling_enabled = true
     min_count            = 1
-    max_count            = 3
+    max_count            = 4
+
+    # 삭제중 임시 풀 생성
+    temporary_name_for_rotation = "tempnodepool"
 
     upgrade_settings {
       drain_timeout_in_minutes      = 0
@@ -43,4 +47,17 @@ resource "azurerm_kubernetes_cluster" "main" {
       error_message = "Refusing to create legacy tf-core-ej AKS or AKS-managed MC_* resource groups from this Terraform stack."
     }
   }
+}
+
+resource "azurerm_role_assignment" "aks_acr_pull" {
+  # 타겟 범위: 위의 data 소스에서 알아낸 ACR의 순수 고유 ID를 지정
+  scope = data.azurerm_container_registry.target_acr.id
+
+  # 역할 이름: 이미지 Pull 권한
+  role_definition_name = "AcrPull"
+
+  # 주체자 ID: AKS의 kubelet identity ID 연결
+  principal_id = azurerm_kubernetes_cluster.main.kubelet_identity[0].object_id
+
+  skip_service_principal_aad_check = true
 }

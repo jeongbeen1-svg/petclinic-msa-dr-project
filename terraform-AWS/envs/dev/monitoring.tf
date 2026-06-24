@@ -1,26 +1,467 @@
-# # 1. 네임스페이스 생성
-# resource "kubernetes_namespace" "whatap" {
-#   metadata { name = "whatap-monitoring" }
+# 1. 네임스페이스 생성
+resource "kubernetes_namespace" "whatap" {
+  metadata { name = "whatap-monitoring" }
+}
+
+# 2. 자격증명 시크릿
+resource "kubernetes_secret" "whatap_credentials" {
+  metadata {
+    name      = "whatap-credentials"
+    namespace = kubernetes_namespace.whatap.metadata[0].name
+  }
+  data = {
+    WHATAP_LICENSE = var.whatap_license
+    WHATAP_HOST    = "13.124.11.223/13.209.172.35"
+    WHATAP_PORT    = "6600"
+  }
+}
+
+# 3. 와탭 오퍼레이터 설치 (Helm)
+resource "helm_release" "whatap_operator" {
+  name       = "whatap-operator"
+  repository = "https://whatap.github.io/helm"
+  chart      = "whatap-operator"
+  namespace  = kubernetes_namespace.whatap.metadata[0].name
+  depends_on = [kubernetes_namespace.whatap]
+}
+
+# 💡 4. kubectl_manifest를 통한 무검증 다이렉트 주입 (자동화 핵심)
+resource "kubectl_manifest" "whatap_agent" {
+  yaml_body = <<YAML
+apiVersion: "monitoring.whatap.com/v2alpha1"
+kind: "WhatapAgent"
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: "whatap-operator"
+    app.kubernetes.io/name: "whatap"
+  name: "whatap"
+  namespace: "whatap-monitoring"
+spec:
+  secretName: "whatap-credentials"
+  features:
+    k8sAgent:
+      customAgentImageFullName: "public.ecr.aws/whatap/kube_mon:1.8.7"
+      gpuMonitoring:
+        enabled: false
+      masterAgent:
+        enabled: true
+      nodeAgent:
+        enabled: true
+        runtime: "containerd"
+        runtimeSocketPath: "/var/run/containerd/containerd.sock"
+YAML
+
+  # 헬름 오퍼레이터가 완벽히 안착한 후 배포되도록 강제 보장
+  depends_on = [helm_release.whatap_operator]
+}
+
+resource "aws_eks_addon" "cloudwatch_observability" {
+  cluster_name = module.workload.cluster_name
+  addon_name   = "amazon-cloudwatch-observability"
+
+  depends_on = [
+    module.workload
+  ]
+
+  tags = merge(local.common_tags, {
+    Name = "${module.workload.cluster_name}-cloudwatch-observability"
+  })
+}
+
+resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
+  dashboard_name = "${module.workload.cluster_name}-Integrated-Operations-Dashboard"
+
+  dashboard_body = jsonencode({
+    widgets = [
+      # ============================================================
+      # [PAGE 1 - 종합 서비스 헬스케어 & 관제 레이어 (y=0)]
+      # ============================================================
+      {
+        type   = "metric"
+        x      = 0
+        y      = 0
+        width  = 8
+        height = 6
+        properties = {
+          metrics = [
+            [{ "expression" : "SEARCH('{AWS/Route53,HealthCheckId} MetricName=\"HealthCheckStatus\"', 'Average', 60)", "label" : "DNS: &&-SCHEMA-REPLACEMENT-&&", "id" : "dns1" }]
+          ]
+          period = 60
+          region = "ap-northeast-2"
+          title  = "🔥 1-1. DNS (Route 53) Health Check Status (1=Healthy, 0=Unhealthy)"
+          view   = "timeSeries"
+        }
+      },
+      {
+        type   = "metric"
+        x      = 8
+        y      = 0
+        width  = 8
+        height = 6
+        properties = {
+          metrics = [
+            [{ "expression" : "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_Target_2XX_Count\"', 'Sum', 60)", "label" : "2XX: &&-SCHEMA-REPLACEMENT-&&", "id" : "alb2xx", "color" : "#2ca02c" }],
+            [{ "expression" : "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_Target_4XX_Count\"', 'Sum', 60)", "label" : "4XX: &&-SCHEMA-REPLACEMENT-&&", "id" : "alb4xx", "color" : "#ff7f0e" }],
+            [{ "expression" : "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_Target_5XX_Count\"', 'Sum', 60)", "label" : "5XX: &&-SCHEMA-REPLACEMENT-&&", "id" : "alb5xx", "color" : "#d62728" }]
+          ]
+          period = 60
+          region = "ap-northeast-2"
+          title  = "🎯 1-2. ALB Target Response Code Distribution (2XX/4XX/5XX)"
+          view   = "timeSeries"
+        }
+      },
+      {
+        type   = "metric"
+        x      = 16
+        y      = 0
+        width  = 8
+        height = 6
+        properties = {
+          metrics = [
+            [{ "expression" : "SEARCH('{ContainerInsights,ClusterName} ClusterName=\"${module.workload.cluster_name}\" MetricName=\"cluster_failed_node_count\"', 'Maximum', 60)", "label" : "Failed Nodes", "id" : "k8sfail", "color" : "#ff7f0e" }]
+          ]
+          period = 60
+          region = "ap-northeast-2"
+          title  = "🔥 1-3. EKS Cluster Failed Node Count (Cluster Health)"
+          view   = "timeSeries"
+        }
+      },
+
+      # ============================================================
+      # [PAGE 2 - Ingress ALB & EKS 인프라 레이어 (y=6)]
+      # ============================================================
+      {
+        type   = "metric"
+        x      = 0
+        y      = 6
+        width  = 12
+        height = 6
+        properties = {
+          metrics = [
+            [{ "expression" : "SEARCH('{AWS/ApplicationELB,TargetGroup} MetricName=\"HealthyHostCount\"', 'Average', 60)", "label" : "🟢 Healthy: &&-SCHEMA-REPLACEMENT-&&", "id" : "h1" }]
+          ]
+          period = 60
+          region = "ap-northeast-2"
+          title  = "🎯 2-1. Ingress Auto-Generated Targets: Healthy Host Count"
+          view   = "timeSeries"
+        }
+      },
+      {
+        type   = "metric"
+        x      = 12
+        y      = 6
+        width  = 12
+        height = 6
+        properties = {
+          metrics = [
+            [{ "expression" : "SEARCH('{AWS/ApplicationELB,TargetGroup} MetricName=\"UnHealthyHostCount\"', 'Average', 60)", "label" : "🔴 UnHealthy: &&-SCHEMA-REPLACEMENT-&&", "id" : "uh1", "color" : "#d62728" }]
+          ]
+          period = 60
+          region = "ap-northeast-2"
+          title  = "🎯 2-2. Ingress Auto-Generated Targets: UnHealthy Host Count"
+          view   = "timeSeries"
+        }
+      },
+      {
+        type   = "metric"
+        x      = 0
+        y      = 12
+        width  = 12
+        height = 6
+        properties = {
+          metrics = [
+            [{ "expression" : "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"RequestCount\"', 'Sum', 60)", "label" : "Requests: &&-SCHEMA-REPLACEMENT-&&", "id" : "req1" }]
+          ]
+          period = 60
+          region = "ap-northeast-2"
+          title  = "📈 2-3. Ingress ALB Total Request Count (Traffic Rate)"
+          view   = "timeSeries"
+        }
+      },
+      {
+        type   = "metric"
+        x      = 12
+        y      = 12
+        width  = 12
+        height = 6
+        properties = {
+          metrics = [
+            [{ "expression" : "SEARCH('{AWS/ApplicationELB,TargetGroup} MetricName=\"TargetResponseTime\"', 'Average', 60)", "label" : "Latency: &&-SCHEMA-REPLACEMENT-&&", "id" : "latency1" }]
+          ]
+          period = 60
+          region = "ap-northeast-2"
+          title  = "⏱️ 2-4. Target Response Time per Auto-Generated Ingress Group (Average)"
+          view   = "timeSeries"
+        }
+      },
+      {
+        type   = "metric"
+        x      = 0
+        y      = 18
+        width  = 12
+        height = 6
+        properties = {
+          metrics = [
+            [{ "expression" : "SEARCH('{ContainerInsights,ClusterName} ClusterName=\"${module.workload.cluster_name}\" MetricName=\"node_cpu_utilization\"', 'Average', 60)", "label" : "Node CPU: &&-SCHEMA-REPLACEMENT-&&", "id" : "ncpu" }]
+          ]
+          period = 60
+          region = "ap-northeast-2"
+          title  = "☸️ 2-5. EKS Worker Nodes CPU Utilization (%)"
+          view   = "timeSeries"
+        }
+      },
+      {
+        type   = "metric"
+        x      = 12
+        y      = 18
+        width  = 12
+        height = 6
+        properties = {
+          metrics = [
+            [{ "expression" : "SEARCH('{ContainerInsights,ClusterName} ClusterName=\"${module.workload.cluster_name}\" MetricName=\"node_memory_utilization\"', 'Average', 60)", "label" : "Node Mem: &&-SCHEMA-REPLACEMENT-&&", "id" : "nmem" }]
+          ]
+          period = 60
+          region = "ap-northeast-2"
+          title  = "☸️ 2-6. EKS Worker Nodes Memory Utilization (%)"
+          view   = "timeSeries"
+        }
+      },
+      {
+        type   = "metric"
+        x      = 0
+        y      = 24
+        width  = 24
+        height = 6
+        properties = {
+          metrics = [
+            [{ "expression" : "SEARCH('{ContainerInsights,ClusterName,Namespace} ClusterName=\"${module.workload.cluster_name}\" MetricName=\"pod_number_of_container_restarts\"', 'Sum', 60)", "label" : "Restart Count: &&-SCHEMA-REPLACEMENT-&&", "id" : "podrest", "color" : "#1f77b4" }]
+          ]
+          period = 60
+          region = "ap-northeast-2"
+          title  = "☸️ 2-7. EKS Pod Container Restart Count (Detecting CrashLoopBackOff)"
+          view   = "timeSeries"
+        }
+      },
+
+      # ============================================================
+      # [PAGE 3 - 애플리케이션 성능 및 DB 레이어 (y=30)]
+      # ============================================================
+      {
+        type   = "metric"
+        x      = 0
+        y      = 30
+        width  = 12
+        height = 6
+        properties = {
+          metrics = [
+            [{ "expression" : "SEARCH('{ContainerInsights,ClusterName,Namespace,PodName} ClusterName=\"${module.workload.cluster_name}\" MetricName=\"pod_cpu_utilization\"', 'Average', 60)", "label" : "Pod CPU: &&-SCHEMA-REPLACEMENT-&&", "id" : "pcpu" }]
+          ]
+          period = 60
+          region = "ap-northeast-2"
+          title  = "🚀 3-1. Application Pods CPU Utilization (By Microservices)"
+          view   = "timeSeries"
+        }
+      },
+      {
+        type   = "metric"
+        x      = 12
+        y      = 30
+        width  = 12
+        height = 6
+        properties = {
+          metrics = [
+            [{ "expression" : "SEARCH('{ContainerInsights,ClusterName,Namespace,PodName} ClusterName=\"${module.workload.cluster_name}\" MetricName=\"pod_memory_utilization\"', 'Average', 60)", "label" : "Pod Mem: &&-SCHEMA-REPLACEMENT-&&", "id" : "pmem" }]
+          ]
+          period = 60
+          region = "ap-northeast-2"
+          title  = "🚀 3-2. Application Pods Memory Utilization (By Microservices)"
+          view   = "timeSeries"
+        }
+      },
+      {
+        type   = "metric"
+        x      = 0
+        y      = 36
+        width  = 8
+        height = 6
+        properties = {
+          metrics = [
+            [{ "expression" : "SEARCH('{AWS/RDS,DBInstanceIdentifier} DBInstanceIdentifier=petclinic MetricName=\"CPUUtilization\"', 'Average', 60)", "label" : "DB CPU: &&-SCHEMA-REPLACEMENT-&&", "id" : "rdscpu" }]
+          ]
+          period = 60
+          region = "ap-northeast-2"
+          title  = "🗄️ 3-3. Database (RDS) CPU Utilization (%)"
+          view   = "timeSeries"
+        }
+      },
+      {
+        type   = "metric"
+        x      = 8
+        y      = 36
+        width  = 8
+        height = 6
+        properties = {
+          metrics = [
+            [{ "expression" : "SEARCH('{AWS/RDS,DBInstanceIdentifier} DBInstanceIdentifier=petclinic MetricName=\"DatabaseConnections\"', 'Average', 60)", "label" : "Connections: &&-SCHEMA-REPLACEMENT-&&", "id" : "rdsconn", "color" : "#9467bd" }]
+          ]
+          period = 60
+          region = "ap-northeast-2"
+          title  = "🗄️ 3-4. Database Connection Count (Connection Pool Monitor)"
+          view   = "timeSeries"
+        }
+      },
+      {
+        type   = "metric"
+        x      = 16
+        y      = 36
+        width  = 8
+        height = 6
+        properties = {
+          metrics = [
+            [{ "expression" : "SEARCH('{AWS/RDS,DBInstanceIdentifier} DBInstanceIdentifier=petclinic MetricName=\"ReplicationLag\"', 'Maximum', 60)", "label" : "Lag Sec: &&-SCHEMA-REPLACEMENT-&&", "id" : "rdslag", "color" : "#e377c2" }]
+          ]
+          period = 60
+          region = "ap-northeast-2"
+          title  = "🗄️ 3-5. RDS Cross-Region Replication Lag (DR Metric)"
+          view   = "timeSeries"
+        }
+      },
+      {
+        type   = "metric"
+        x      = 0
+        y      = 42
+        width  = 8
+        height = 6
+        properties = {
+          metrics = [
+            [{ "expression" : "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"RequestCount\"', 'Sum', 60) / 60", "label" : "TPS: &&-SCHEMA-REPLACEMENT-&&", "id" : "albtps" }]
+          ]
+          period = 60
+          region = "ap-northeast-2"
+          title  = "🌐 4-1. ALB Transactions Per Second"
+          view   = "timeSeries"
+        }
+      },
+      {
+        type   = "metric"
+        x      = 8
+        y      = 42
+        width  = 8
+        height = 6
+        properties = {
+          metrics = [
+            [{ "expression" : "SEARCH('{AWS/AutoScaling,AutoScalingGroupName} MetricName=\"GroupInServiceInstances\"', 'Average', 60)", "label" : "Running: &&-SCHEMA-REPLACEMENT-&&", "id" : "asgrun" }],
+            [{ "expression" : "SEARCH('{AWS/AutoScaling,AutoScalingGroupName} MetricName=\"GroupDesiredCapacity\"', 'Average', 60)", "label" : "Desired: &&-SCHEMA-REPLACEMENT-&&", "id" : "asgdes", "color" : "#9467bd" }]
+          ]
+          period = 60
+          region = "ap-northeast-2"
+          title  = "☸️ 4-2. EKS Node Group (ASG) Desired vs Running Capacity"
+          view   = "timeSeries"
+        }
+      },
+      {
+        type   = "metric"
+        x      = 16
+        y      = 42
+        width  = 8
+        height = 6
+        properties = {
+          metrics = [
+            [{ "expression" : "SEARCH('{AWS/RDS,DBInstanceIdentifier} DBInstanceIdentifier=petclinic MetricName=\"FreeableMemory\"', 'Average', 60)", "label" : "FreeMem: &&-SCHEMA-REPLACEMENT-&&", "id" : "rdsmem" }],
+            [{ "expression" : "SEARCH('{AWS/RDS,DBInstanceIdentifier} DBInstanceIdentifier=petclinic MetricName=\"FreeStorageSpace\"', 'Average', 60)", "label" : "FreeDisk: &&-SCHEMA-REPLACEMENT-&&", "id" : "rdsdisk", "color" : "#8c564b" }]
+          ]
+          period = 60
+          region = "ap-northeast-2"
+          title  = "🗄️ 4-3. RDS Memory & Storage Headroom"
+          view   = "timeSeries"
+        }
+      }
+    ]
+  })
+}
+
+# ==========================================
+# 1. 알림 채널 구성 (SNS & Chatbot)
+# ==========================================
+
+# SNS 토픽 생성
+# resource "aws_sns_topic" "rds_alarm_topic" {
+#   name = "petclinic-rds-alarm-topic"
 # }
 
-# # 2. 자격증명 시크릿 (라이선스 키만 여기에 변수로 넣으세요)
-# resource "kubernetes_secret" "whatap_credentials" {
-#   metadata {
-#     name      = "whatap-credentials"
-#     namespace = kubernetes_namespace.whatap.metadata[0].name
-#   }
-#   data = {
-#     WHATAP_LICENSE = var.whatap_license # variables.tf에 정의
-#     WHATAP_HOST    = "13.124.11.223/13.209.172.35"
-#     WHATAP_PORT    = "6600"
-#   }
+# # 이메일 구독 설정 (테라폼 apply 후 메일함에서 'Confirm Subscription'을 눌러야 활성화됩니다)
+# resource "aws_sns_topic_subscription" "email_subscription" {
+#   # for_each를 사용하여 여러 명에게 구독 설정
+#   for_each = toset(local.alarm_emails)
+
+#   topic_arn = aws_sns_topic.rds_alarm_topic.arn
+#   protocol  = "email"
+#   endpoint  = each.value # 리스트의 이메일이 하나씩 매핑됩니다.
 # }
 
-# # 3. 와탭 오퍼레이터 설치 (Helm)
-# resource "helm_release" "whatap_operator" {
-#   name       = "whatap-operator"
-#   repository = "https://whatap.github.io/helm"
-#   chart      = "whatap-operator"
-#   namespace  = kubernetes_namespace.whatap.metadata[0].name
-#   depends_on = [kubernetes_namespace.whatap]
-# }
+# Slack 연동을 위한 AWS Chatbot 설정
+# ⚠️ 주의: AWS Chatbot의 Workspace ID는 콘솔에서 최초 1회 Slack 인증을 진행해야 확인 가능합니다.
+resource "aws_chatbot_slack_channel_configuration" "slack_alarm" {
+  configuration_name = "route53_healthcheck-slack-alarm"
+  iam_role_arn       = aws_iam_role.chatbot_role.arn
+  slack_channel_id   = "C0BB6V15RG9" # 👈 알람을 보낼 슬랙 채널 ID 입력
+  slack_team_id      = "T0BB1N1H97X" # 👈 AWS 콘솔에 연동된 슬랙 워크스페이스 ID 입력
+
+  sns_topic_arns = [
+    aws_sns_topic.route53_healthcheck_alarm.arn
+  ]
+}
+
+# Chatbot을 위한 기본 IAM Role
+resource "aws_iam_role" "chatbot_role" {
+  name = "aws-chatbot-rds-alarm-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "chatbot.amazonaws.com"
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "chatbot_notification_policy" {
+  role       = aws_iam_role.chatbot_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess" # 알람 메트릭을 읽어올 수 있는 정책
+}
+
+resource "aws_sns_topic" "route53_healthcheck_alarm" {
+  provider = aws.us_east_1
+  name     = "${local.namespace}-route53-healthcheck-alarm"
+}
+# ==========================================
+# 2. 지표별 CloudWatch Alarm 구성
+# ==========================================
+
+#라우트53 헬스체크 알람
+resource "aws_cloudwatch_metric_alarm" "route53_healthcheck_unhealthy" {
+  provider = aws.us_east_1
+
+  alarm_name          = "${local.namespace}-route53-healthcheck-unhealthy"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "HealthCheckStatus"
+  namespace           = "AWS/Route53"
+  period              = 60 # 1분
+  statistic           = "Minimum"
+  threshold           = 1
+  treat_missing_data  = "breaching"
+
+  dimensions = {
+    HealthCheckId = module.platform.route53_health_check_id
+  }
+  
+  alarm_description   = "Route 53 health check ${module.platform.route53_health_check_id} is unhealthy."
+
+  alarm_actions             = [aws_sns_topic.route53_healthcheck_alarm.arn]
+  ok_actions                = [aws_sns_topic.route53_healthcheck_alarm.arn]
+  insufficient_data_actions = [aws_sns_topic.route53_healthcheck_alarm.arn]
+}

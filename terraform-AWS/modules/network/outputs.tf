@@ -43,22 +43,20 @@ output "subnet" {
   }
 }
 
-output "azure_dns_forwarding" {
-  value = {
-    enabled              = local.azure_dns_forwarding.enabled
-    forwarded_domains    = local.azure_dns_forwarding.domains
-    resolver_endpoint_id = local.azure_dns_forwarding.enabled ? aws_route53_resolver_endpoint.azure_outbound[0].id : null
-    target_ips           = var.azure_private_dns_resolver_inbound_ips
-  }
+output "vpn_tunnel1_outside_ip" {
+  value = aws_vpn_connection.main.tunnel1_address
 }
 
-output "azure_vpn" {
-  value = var.azure_customer_gateway_ip_address != null ? {
-    customer_gateway_id = aws_customer_gateway.azure[0].id
-    vpn_gateway_id      = aws_vpn_gateway.azure[0].id
-    vpn_connection_id   = aws_vpn_connection.azure[0].id
-    tunnel1_address     = aws_vpn_connection.azure[0].tunnel1_address
-    tunnel2_address     = aws_vpn_connection.azure[0].tunnel2_address
-    azure_vnet_cidr     = var.azure_vnet_cidr
-  } : null
+output "vpn_tunnel2_outside_ip" {
+  value = aws_vpn_connection.main.tunnel2_address
+}
+
+output "vpn_tunnel1_preshared_key" {
+  value     = aws_vpn_connection.main.tunnel1_preshared_key
+  sensitive = true # 보안을 위해 민감 정보로 마킹
+}
+
+output "vpn_tunnel2_preshared_key" {
+  value     = aws_vpn_connection.main.tunnel2_preshared_key
+  sensitive = true # 보안을 위해 민감 정보로 마킹
 }

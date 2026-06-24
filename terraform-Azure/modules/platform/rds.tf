@@ -19,8 +19,8 @@ resource "azurerm_mysql_flexible_server" "mysql" {
   name                   = local.mysql.server_name
   resource_group_name    = var.resource_group_name
   location               = var.location
-  administrator_login    = var.db_username
-  administrator_password = var.db_password
+  administrator_login    = data.azurerm_key_vault_secret.db_username.value
+  administrator_password = data.azurerm_key_vault_secret.db_password.value
   backup_retention_days  = local.mysql.backup_retention_days
   delegated_subnet_id    = var.db_subnet_id
   private_dns_zone_id    = azurerm_private_dns_zone.mysql.id
@@ -41,6 +41,7 @@ resource "azurerm_mysql_flexible_server" "mysql" {
   ]
 }
 
+# CDC를 위한 설정 리소스
 resource "azurerm_mysql_flexible_server_configuration" "binlog_row_image" {
   name                = "binlog_row_image"
   resource_group_name = var.resource_group_name

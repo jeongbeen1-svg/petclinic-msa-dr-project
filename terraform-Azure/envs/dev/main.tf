@@ -1,10 +1,15 @@
 module "network" {
   source = "../../modules/network"
 
-  namespace       = local.namespace
-  location        = local.location
-  aws_vpc_cidr    = local.aws_vpn.vpc_cidr
-  aws_vpn_tunnels = local.aws_vpn.tunnels
+  namespace = local.namespace
+  location  = local.location
+
+  aws_vpc_cidr = local.aws_vpc_cidr
+
+  tunnel1_ip  = var.vpn_tunnel1_outside_ip
+  tunnel2_ip  = var.vpn_tunnel2_outside_ip
+  tunnel1_key = var.vpn_tunnel1_preshared_key
+  tunnel2_key = var.vpn_tunnel2_preshared_key
 }
 
 module "platform" {
@@ -15,14 +20,6 @@ module "platform" {
   resource_group_name = module.network.resource_group_name
   vnet_id             = module.network.vnet["main"].id
   db_subnet_id        = module.network.subnet["db"].id
-  db_username         = var.db_username
-  db_password         = var.db_password
-  dms_ip              = local.dms_ip
-  my_ip               = local.my_ip
-  private_subnet_ids = [
-    module.network.subnet["private-a"].id,
-    module.network.subnet["private-c"].id
-  ]
 }
 
 module "workload" {

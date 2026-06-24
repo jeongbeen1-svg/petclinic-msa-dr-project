@@ -19,5 +19,9 @@ output "mysql_database_name" {
 }
 
 output "mysql_admin_username" {
-  value = var.db_username
+  value = data.azurerm_key_vault_secret.db_username.value
+}
+
+output "mysql_admin_password" {
+  value = data.azurerm_key_vault_secret.db_password.value
 }

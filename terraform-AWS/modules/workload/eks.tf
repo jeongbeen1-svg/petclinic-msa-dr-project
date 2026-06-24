@@ -181,11 +181,6 @@ resource "aws_eks_access_policy_association" "bastion" {
   }
 }
 
-# 3. OIDC Provider 생성 (IRSA 보안용)
-data "tls_certificate" "eks" {
-  url = aws_eks_cluster.main.identity[0].oidc[0].issuer
-}
-
 resource "aws_iam_openid_connect_provider" "eks" {
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = [data.tls_certificate.eks.certificates[0].sha1_fingerprint]
@@ -247,12 +242,13 @@ resource "aws_eks_node_group" "system" {
   subnet_ids      = local.private_subnet_ids
 
   scaling_config {
-    desired_size = 1
+    desired_size = 2
     max_size     = 3
-    min_size     = 1
+    min_size     = 0
   }
 
-  instance_types = ["t3.large"]
+  # m 시리즈가 t 시리즈보다 안정적 (고정 성능이라 에이전트같은 상시 서비스가 안정적임)
+  instance_types = ["m5.large"]
 
   # 템플릿을 노드 그룹에 연결
   launch_template {
@@ -323,72 +319,6 @@ resource "aws_iam_role_policy" "node_alb" {
   })
 }
 
-
-# 1. Karpenter Controller를 위한 IAM Role (OIDC 연동)
-resource "aws_iam_role" "karpenter_controller" {
-  name = "${local.cluster_name}-karpenter-controller"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Action    = "sts:AssumeRoleWithWebIdentity"
-      Effect    = "Allow"
-      Principal = { Federated = aws_iam_openid_connect_provider.eks.arn }
-      Condition = {
-        StringEquals = {
-          "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" = "system:serviceaccount:karpenter:karpenter"
-        }
-      }
-    }]
-  })
-}
-
-# 2. Karpenter Controller 정책 (최소 권한 원칙 반영)
-resource "aws_iam_role_policy" "karpenter_controller_policy" {
-  name = "${local.cluster_name}-karpenter-policy"
-  role = aws_iam_role.karpenter_controller.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "ec2:DescribeImages",
-          "ec2:RunInstances",
-          "ec2:DescribeSubnets",
-          "ec2:DescribeSecurityGroups",
-          "ec2:DescribeLaunchTemplates",
-          "ec2:DescribeInstances",
-          "ec2:DescribeInstanceTypes",
-          "ec2:DescribeInstanceTypeOfferings",
-          "ec2:DescribeAvailabilityZones",
-          "ec2:DeleteLaunchTemplate",
-          "ec2:CreateTags",
-          "ec2:CreateLaunchTemplate",
-          "ec2:CreateFleet",
-          "ec2:DescribeSpotPriceHistory",
-          "pricing:GetProducts",
-          "ec2:TerminateInstances",
-          "ssm:GetParameter",
-          "eks:DescribeCluster"
-        ]
-        Effect   = "Allow"
-        Resource = "*"
-      },
-      {
-        Effect   = "Allow"
-        Action   = "iam:PassRole"
-        Resource = aws_iam_role.node.arn
-        Condition = {
-          StringEquals = {
-            "iam:PassedToService" = "ec2.amazonaws.com"
-          }
-        }
-      }
-    ]
-  })
-}
-
 # CA용 IAM Role (IRSA 방식)
 resource "aws_iam_role" "cluster_autoscaler" {
   name = "${local.cluster_name}-ca-role"
@@ -429,4 +359,97 @@ resource "aws_iam_role_policy" "cluster_autoscaler_policy" {
       Resource = "*"
     }]
   })
+}
+
+resource "aws_iam_policy" "external_secrets" {
+  name        = "ExternalSecretsPolicy"
+  description = "Allow External Secrets to read AWS Secrets Manager"
+  policy      = data.aws_iam_policy_document.external_secrets.json
+}
+
+# IRSA용 IAM Role 생성
+module "iam_assumable_role_external_secrets" {
+  source    = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version   = "5.44.0"
+  role_name = "external-secrets-role"
+  role_policy_arns = {
+    policy = aws_iam_policy.external_secrets.arn
+  }
+  oidc_providers = {
+    ex = {
+      provider_arn               = aws_iam_openid_connect_provider.eks.arn # EKS 클러스터의 OIDC ARN
+      namespace_service_accounts = ["external-secrets:external-secrets-sa"]
+    }
+  }
+}
+
+# AWS Load Balancer Controller (LBC) 추가
+# 최신 LBC 공식 IAM 정책 데이터 원격 다운로드
+data "http" "lbc_iam_policy_latest" {
+  url = "https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.7.2/docs/install/iam_policy.json"
+}
+
+# 2. 다운로드한 JSON 기반으로 전용 IAM Policy 생성
+resource "aws_iam_policy" "aws_load_balancer_controller" {
+  name        = "${local.cluster_name}-lbc-policy"
+  path        = "/"
+  description = "AWS Load Balancer Controller Policy via Terraform"
+  policy      = data.http.lbc_iam_policy_latest.response_body
+}
+
+# LBC 전용 IRSA IAM Role 생성 (기존 OpenID Connect Provider 연동)
+resource "aws_iam_role" "aws_load_balancer_controller" {
+  name = "${local.cluster_name}-lbc-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Effect = "Allow"
+      Principal = {
+        Federated = aws_iam_openid_connect_provider.eks.arn
+      }
+      Condition = {
+        StringEquals = {
+          "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" = "system:serviceaccount:kube-system:aws-load-balancer-controller",
+          "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:aud" = "sts.amazonaws.com"
+        }
+      }
+    }]
+  })
+}
+
+# 생성한 전용 Policy와 Role 결합
+resource "aws_iam_role_policy_attachment" "aws_load_balancer_controller_attach" {
+  policy_arn = aws_iam_policy.aws_load_balancer_controller.arn
+  role       = aws_iam_role.aws_load_balancer_controller.name
+}
+
+# Helm Provider를 통한 LBC 배포 및 Service Account(SA) 자동 생성 제어
+resource "helm_release" "aws_load_balancer_controller" {
+  name       = "aws-load-balancer-controller"
+  repository = "https://aws.github.io/eks-charts"
+  chart      = "aws-load-balancer-controller"
+  namespace  = "kube-system"
+  version    = "1.7.2" # AWS EKS 1.28~1.30 스펙에 가장 안정적인 차트 버전 선점
+
+  values = [
+    jsonencode({
+      clusterName = aws_eks_cluster.main.name
+      vpcId       = local.vpc_id
+      serviceAccount = {
+        create = true
+        name   = "aws-load-balancer-controller"
+        annotations = {
+          "eks.amazonaws.com/role-arn" = aws_iam_role.aws_load_balancer_controller.arn
+        }
+      }
+    })
+  ]
+
+  # 노드 그룹이 준비 완료된 뒤 안전하게 헬름이 내려앉도록 의존성 설정
+  depends_on = [
+    aws_eks_node_group.system,
+    aws_iam_role_policy_attachment.aws_load_balancer_controller_attach
+  ]
 }

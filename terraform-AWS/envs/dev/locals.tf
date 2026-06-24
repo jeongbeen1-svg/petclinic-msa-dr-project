@@ -1,24 +1,31 @@
 locals {
-  org         = "tf-core-jaebok1205"
-  project     = "test"
+  org         = "tf-core"
+  project     = "test-1"
   environment = "dev"
 
   namespace = "${local.org}-${local.project}-${local.environment}"
   # 추후 버킷 생성 코드 구현 시 제거함
   bucket_name = "${local.namespace}-tfstate-backup"
 
+  common_tags = {
+    Environment = "dev"
+    Project     = "Project3-MSA"
+    ManagedBy   = "Terraform"
+  }
+
   bastion = {
     instance_type = "t3.micro"
     allowed_cidrs = ["0.0.0.0/0"] # 보안을 위해 실제 사무실/집 IP 대역으로 제한
   }
 
+  # 현재 azure 생성 시 ip 지정 생성됨
   azure_private_dns_resolver = {
-    inbound_ips = ["10.0.254.4"]
+    inbound_ips = try(data.terraform_remote_state.azure.outputs.azure_inbound_ips, ["10.0.254.4"])
   }
 
   azure_vpn = {
-    gateway_ip_address = data.terraform_remote_state.azure.outputs.module.network.vpn_gateway.public_ip_address
-    vnet_cidr          = "10.0.0.0/16"
+    vnet_cidr             = try(data.terraform_remote_state.azure.outputs.azure_vnet_cidr, "10.0.0.0/16")
+    vpn_gateway_public_ip = try(data.terraform_remote_state.azure.outputs.azure_vpn_gw_pip, "20.249.153.151")
   }
 
   # assumed-role ARN을 정규 IAM Role ARN으로 변환하는 로컬 변수
@@ -38,4 +45,8 @@ locals {
     var.additional_admin_arns,
     [local.normalized_arn]
   ))
+
+  target_username   = try(data.terraform_remote_state.azure.outputs.target_username, "petclinicadmin")
+  target_password   = try(data.terraform_remote_state.azure.outputs.target_password, "data1234!")
+  target_db_address = try(data.terraform_remote_state.azure.outputs.target_db_address, "10.0.201.4")
 }
