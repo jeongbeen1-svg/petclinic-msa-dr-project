@@ -68,7 +68,6 @@ resource "aws_eks_addon" "cloudwatch_observability" {
   })
 }
 
-
 resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
   dashboard_name = "${module.workload.cluster_name}-Integrated-Operations-Dashboard"
 
@@ -77,32 +76,28 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
       # ============================================================
       # [PAGE 1 - 종합 서비스 헬스케어 & 관제 레이어 (y=0)]
       # ============================================================
-
-      # 1-1. DNS 헬스체크 - singleValue (현재 상태 숫자로 한눈에)
       {
         type   = "metric"
         x      = 0
         y      = 0
-        width  = 6
-        height = 4
+        width  = 8
+        height = 6
         properties = {
           metrics = [
             [{ "expression" : "SEARCH('{AWS/Route53,HealthCheckId} MetricName=\"HealthCheckStatus\"', 'Average', 60)", "label" : "DNS: &&-SCHEMA-REPLACEMENT-&&", "id" : "dns1" }]
           ]
           period = 60
-          region = "us-east-1"
+          region = "ap-northeast-2"
           title  = "🔥 1-1. DNS (Route 53) Health Check Status (1=Healthy, 0=Unhealthy)"
-          view   = "singleValue"
+          view   = "timeSeries"
         }
       },
-
-      # 1-2. ALB 응답코드 분포 - bar (비율/분포에 적합)
       {
         type   = "metric"
-        x      = 6
+        x      = 8
         y      = 0
-        width  = 12
-        height = 4
+        width  = 8
+        height = 6
         properties = {
           metrics = [
             [{ "expression" : "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_Target_2XX_Count\"', 'Sum', 60)", "label" : "2XX: &&-SCHEMA-REPLACEMENT-&&", "id" : "alb2xx", "color" : "#2ca02c" }],
@@ -112,17 +107,15 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           period = 60
           region = "ap-northeast-2"
           title  = "🎯 1-2. ALB Target Response Code Distribution (2XX/4XX/5XX)"
-          view   = "bar"
+          view   = "timeSeries"
         }
       },
-
-      # 1-3. EKS 실패 노드 수 - singleValue (현재 상태 숫자로 한눈에)
       {
         type   = "metric"
-        x      = 18
+        x      = 16
         y      = 0
-        width  = 6
-        height = 4
+        width  = 8
+        height = 6
         properties = {
           metrics = [
             [{ "expression" : "SEARCH('{ContainerInsights,ClusterName} ClusterName=\"${module.workload.cluster_name}\" MetricName=\"cluster_failed_node_count\"', 'Maximum', 60)", "label" : "Failed Nodes", "id" : "k8sfail", "color" : "#ff7f0e" }]
@@ -130,21 +123,19 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           period = 60
           region = "ap-northeast-2"
           title  = "🔥 1-3. EKS Cluster Failed Node Count (Cluster Health)"
-          view   = "singleValue"
+          view   = "timeSeries"
         }
       },
 
       # ============================================================
-      # [PAGE 2 - Ingress ALB & EKS 인프라 레이어 (y=4)]
+      # [PAGE 2 - Ingress ALB & EKS 인프라 레이어 (y=6)]
       # ============================================================
-
-      # 2-1. 헬시 호스트 수 - singleValue
       {
         type   = "metric"
         x      = 0
-        y      = 4
-        width  = 6
-        height = 4
+        y      = 6
+        width  = 12
+        height = 6
         properties = {
           metrics = [
             [{ "expression" : "SEARCH('{AWS/ApplicationELB,TargetGroup} MetricName=\"HealthyHostCount\"', 'Average', 60)", "label" : "🟢 Healthy: &&-SCHEMA-REPLACEMENT-&&", "id" : "h1" }]
@@ -152,17 +143,15 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           period = 60
           region = "ap-northeast-2"
           title  = "🎯 2-1. Ingress Auto-Generated Targets: Healthy Host Count"
-          view   = "singleValue"
+          view   = "timeSeries"
         }
       },
-
-      # 2-2. 언헬시 호스트 수 - singleValue
       {
         type   = "metric"
-        x      = 6
-        y      = 4
-        width  = 6
-        height = 4
+        x      = 12
+        y      = 6
+        width  = 12
+        height = 6
         properties = {
           metrics = [
             [{ "expression" : "SEARCH('{AWS/ApplicationELB,TargetGroup} MetricName=\"UnHealthyHostCount\"', 'Average', 60)", "label" : "🔴 UnHealthy: &&-SCHEMA-REPLACEMENT-&&", "id" : "uh1", "color" : "#d62728" }]
@@ -170,17 +159,15 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           period = 60
           region = "ap-northeast-2"
           title  = "🎯 2-2. Ingress Auto-Generated Targets: UnHealthy Host Count"
-          view   = "singleValue"
+          view   = "timeSeries"
         }
       },
-
-      # 2-3. ALB 요청수 - timeSeries (추이 확인)
       {
         type   = "metric"
-        x      = 12
-        y      = 4
+        x      = 0
+        y      = 12
         width  = 12
-        height = 4
+        height = 6
         properties = {
           metrics = [
             [{ "expression" : "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"RequestCount\"', 'Sum', 60)", "label" : "Requests: &&-SCHEMA-REPLACEMENT-&&", "id" : "req1" }]
@@ -191,12 +178,10 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           view   = "timeSeries"
         }
       },
-
-      # 2-4. 응답시간 - timeSeries (추이 확인)
       {
         type   = "metric"
-        x      = 0
-        y      = 8
+        x      = 12
+        y      = 12
         width  = 12
         height = 6
         properties = {
@@ -209,12 +194,10 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           view   = "timeSeries"
         }
       },
-
-      # 2-5. 노드 CPU - timeSeries
       {
         type   = "metric"
-        x      = 12
-        y      = 8
+        x      = 0
+        y      = 18
         width  = 12
         height = 6
         properties = {
@@ -227,12 +210,10 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           view   = "timeSeries"
         }
       },
-
-      # 2-6. 노드 Memory - timeSeries
       {
         type   = "metric"
-        x      = 0
-        y      = 14
+        x      = 12
+        y      = 18
         width  = 12
         height = 6
         properties = {
@@ -245,13 +226,11 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           view   = "timeSeries"
         }
       },
-
-      # 2-7. Pod 재시작 수 - timeSeries (전체 폭으로 한눈에)
       {
         type   = "metric"
-        x      = 12
-        y      = 14
-        width  = 12
+        x      = 0
+        y      = 24
+        width  = 24
         height = 6
         properties = {
           metrics = [
@@ -265,14 +244,12 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
       },
 
       # ============================================================
-      # [PAGE 3 - 애플리케이션 성능 및 DB 레이어 (y=20)]
+      # [PAGE 3 - 애플리케이션 성능 및 DB 레이어 (y=30)]
       # ============================================================
-
-      # 3-1. Pod CPU - timeSeries
       {
         type   = "metric"
         x      = 0
-        y      = 20
+        y      = 30
         width  = 12
         height = 6
         properties = {
@@ -285,12 +262,10 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           view   = "timeSeries"
         }
       },
-
-      # 3-2. Pod Memory - timeSeries
       {
         type   = "metric"
         x      = 12
-        y      = 20
+        y      = 30
         width  = 12
         height = 6
         properties = {
@@ -303,13 +278,11 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           view   = "timeSeries"
         }
       },
-
-      # 3-3. RDS CPU - timeSeries
       {
         type   = "metric"
         x      = 0
-        y      = 26
-        width  = 12
+        y      = 36
+        width  = 8
         height = 6
         properties = {
           metrics = [
@@ -321,13 +294,11 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           view   = "timeSeries"
         }
       },
-
-      # 3-4. DB 커넥션 수 - timeSeries
       {
         type   = "metric"
-        x      = 12
-        y      = 26
-        width  = 12
+        x      = 8
+        y      = 36
+        width  = 8
         height = 6
         properties = {
           metrics = [
@@ -339,16 +310,26 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           view   = "timeSeries"
         }
       },
-
-      # ============================================================
-      # [PAGE 4 - 용량 및 DR 레이어 (y=32)]
-      # ============================================================
-
-      # 4-1. TPS - timeSeries
+      {
+        type   = "metric"
+        x      = 16
+        y      = 36
+        width  = 8
+        height = 6
+        properties = {
+          metrics = [
+            [{ "expression" : "SEARCH('{AWS/RDS,DBInstanceIdentifier} DBInstanceIdentifier=petclinic MetricName=\"ReplicationLag\"', 'Maximum', 60)", "label" : "Lag Sec: &&-SCHEMA-REPLACEMENT-&&", "id" : "rdslag", "color" : "#e377c2" }]
+          ]
+          period = 60
+          region = "ap-northeast-2"
+          title  = "🗄️ 3-5. RDS Cross-Region Replication Lag (DR Metric)"
+          view   = "timeSeries"
+        }
+      },
       {
         type   = "metric"
         x      = 0
-        y      = 32
+        y      = 42
         width  = 8
         height = 6
         properties = {
@@ -361,12 +342,10 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           view   = "timeSeries"
         }
       },
-
-      # 4-2. ASG Desired vs Running - timeSeries
       {
         type   = "metric"
         x      = 8
-        y      = 32
+        y      = 42
         width  = 8
         height = 6
         properties = {
@@ -380,12 +359,10 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           view   = "timeSeries"
         }
       },
-
-      # 4-3. RDS 메모리/스토리지 여유 - timeSeries
       {
         type   = "metric"
         x      = 16
-        y      = 32
+        y      = 42
         width  = 8
         height = 6
         properties = {
@@ -398,25 +375,125 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           title  = "🗄️ 4-3. RDS Memory & Storage Headroom"
           view   = "timeSeries"
         }
-      },
-
-      # 4-4. RDS Cross-Region Replication Lag (DR) - timeSeries
-      {
-        type   = "metric"
-        x      = 0
-        y      = 38
-        width  = 24
-        height = 6
-        properties = {
-          metrics = [
-            [{ "expression" : "SEARCH('{AWS/RDS,DBInstanceIdentifier} DBInstanceIdentifier=petclinic MetricName=\"ReplicationLag\"', 'Maximum', 60)", "label" : "Lag Sec: &&-SCHEMA-REPLACEMENT-&&", "id" : "rdslag", "color" : "#e377c2" }]
-          ]
-          period = 60
-          region = "ap-northeast-2"
-          title  = "🗄️ 4-4. RDS Cross-Region Replication Lag (DR Metric)"
-          view   = "timeSeries"
-        }
       }
     ]
   })
+}
+
+# ==========================================
+# 1. 알림 채널 구성 (SNS & Chatbot)
+# ==========================================
+
+# SNS 토픽 생성
+# resource "aws_sns_topic" "rds_alarm_topic" {
+#   name = "petclinic-rds-alarm-topic"
+# }
+
+# # 이메일 구독 설정 (테라폼 apply 후 메일함에서 'Confirm Subscription'을 눌러야 활성화됩니다)
+# resource "aws_sns_topic_subscription" "email_subscription" {
+#   # for_each를 사용하여 여러 명에게 구독 설정
+#   for_each = toset(local.alarm_emails)
+
+#   topic_arn = aws_sns_topic.rds_alarm_topic.arn
+#   protocol  = "email"
+#   endpoint  = each.value # 리스트의 이메일이 하나씩 매핑됩니다.
+# }
+
+# Slack 연동을 위한 AWS Chatbot 설정
+# 주의: AWS Chatbot의 Workspace ID는 콘솔에서 최초 1회 Slack 인증을 진행해야 확인 가능합니다.
+resource "aws_chatbot_slack_channel_configuration" "slack_alarm" {
+  configuration_name = "route53_healthcheck-slack-alarm"
+  iam_role_arn       = aws_iam_role.chatbot_role.arn
+  slack_channel_id   = "C0BB6V15RG9" # 알람을 보낼 슬랙 채널 ID 입력
+  slack_team_id      = "T0BB1N1H97X" # AWS 콘솔에 연동된 슬랙 워크스페이스 ID 입력
+
+  sns_topic_arns = [
+    aws_sns_topic.route53_healthcheck_alarm.arn,
+    aws_sns_topic.cloudfront_5xx_alarm.arn
+  ]
+}
+
+# Chatbot을 위한 기본 IAM Role
+resource "aws_iam_role" "chatbot_role" {
+  name = "aws-chatbot-rds-alarm-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "chatbot.amazonaws.com"
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "chatbot_notification_policy" {
+  role       = aws_iam_role.chatbot_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess" # 알람 메트릭을 읽어올 수 있는 정책
+}
+
+resource "aws_sns_topic" "route53_healthcheck_alarm" {
+  provider = aws.us_east_1
+  name     = "${local.namespace}-route53-healthcheck-alarm"
+}
+
+resource "aws_sns_topic" "cloudfront_5xx_alarm" {
+  provider = aws.us_east_1
+  name     = "${local.namespace}-cloudfront-5xx-alarm"
+}
+
+# ==========================================
+# 2. 지표별 CloudWatch Alarm 구성
+# ==========================================
+
+#라우트53 헬스체크 알람
+resource "aws_cloudwatch_metric_alarm" "route53_healthcheck_unhealthy" {
+  provider = aws.us_east_1
+
+  alarm_name          = "${local.namespace}-route53-healthcheck-unhealthy"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "HealthCheckStatus"
+  namespace           = "AWS/Route53"
+  period              = 60 # 1분
+  statistic           = "Minimum"
+  threshold           = 1
+  treat_missing_data  = "breaching"
+
+  dimensions = {
+    HealthCheckId = module.platform.route53_health_check_id
+  }
+
+  alarm_description = "Route 53 health check ${module.platform.route53_health_check_id} is unhealthy."
+
+  alarm_actions             = [aws_sns_topic.route53_healthcheck_alarm.arn]
+  ok_actions                = [aws_sns_topic.route53_healthcheck_alarm.arn]
+  insufficient_data_actions = [aws_sns_topic.route53_healthcheck_alarm.arn]
+}
+
+# CloudFront 5xx error rate alarm
+resource "aws_cloudwatch_metric_alarm" "cloudfront_5xx_error_rate_high" {
+  provider = aws.us_east_1
+
+  alarm_name          = "${local.namespace}-cloudfront-5xx-error-rate-high"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "5xxErrorRate"
+  namespace           = "AWS/CloudFront"
+  period              = 60 # 60 seconds
+  statistic           = "Average"
+  threshold           = 80 # 80%
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    DistributionId = module.platform.cloudfront_distribution_id
+    Region         = "Global"
+  }
+
+  alarm_description = "CloudFront distribution ${module.platform.cloudfront_distribution_id} returned 5xx errors above 80% for 60 seconds."
+
+  alarm_actions = [aws_sns_topic.cloudfront_5xx_alarm.arn]
+  ok_actions    = [aws_sns_topic.cloudfront_5xx_alarm.arn]
 }
