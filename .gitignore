@@ -10,3 +10,6 @@
 # **/lambda_package/
 # **/lambda_layer/
 # **/*lambda*.zip
+*.tgz
+*.jtl
+apache-jmeter-*/
