@@ -46,6 +46,12 @@ locals {
     [local.normalized_arn]
   ))
 
+  # ap-northeast-2 Region Healthcheck 관련
+  aws_health_to_slack_name      = "aws-health-to-slack-seoul-health-to-slack"
+  aws_health_to_slack_rule_name = "aws-health-to-slack-seoul-aws-health"
+  aws_health_to_slack_role_name = "aws-health-to-slack-seoul-HealthToSlackFunctionRole-U5SBpUx5eXwf"
+  aws_health_to_slack_log_group = "/aws/lambda/aws-health-to-slack-seoul-health-to-slack"
+
   target_username   = try(data.terraform_remote_state.azure.outputs.target_username, "petclinicadmin")
   target_password   = try(data.terraform_remote_state.azure.outputs.target_password, "data1234!")
   target_db_address = try(data.terraform_remote_state.azure.outputs.target_db_address, "10.0.201.4")

@@ -51,3 +51,10 @@ variable "whatap_license" {
   default     = "x6063qc8dd8at-x5v02c83h07tsu-z4mg3aic9sktc8"
 }
 
+
+# ap-northeast-2 Region Healthcheck 관련
+variable "slack_webhook_url" {
+  description = "Slack Incoming Webhook URL for AWS Health events."
+  type        = string
+  sensitive   = true
+}

@@ -14,3 +14,10 @@ data "terraform_remote_state" "azure" {
     key                  = "terraform.tfstate"
   }
 }
+
+# ap-northeast-2 Region Healthcheck 관련
+data "archive_file" "aws_health_to_slack" {
+  type        = "zip"
+  source_dir  = "${path.module}/lambda"
+  output_path = "${path.module}/.terraform/aws_health_to_slack.zip"
+}

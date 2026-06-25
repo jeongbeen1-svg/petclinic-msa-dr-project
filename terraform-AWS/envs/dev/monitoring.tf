@@ -399,6 +399,20 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
 #   endpoint  = each.value # 리스트의 이메일이 하나씩 매핑됩니다.
 # }
 
+# Slack 연동을 위한 AWS Chatbot 설정
+# 주의: AWS Chatbot의 Workspace ID는 콘솔에서 최초 1회 Slack 인증을 진행해야 확인 가능합니다.
+resource "aws_chatbot_slack_channel_configuration" "slack_alarm" {
+  configuration_name = "route53_healthcheck-slack-alarm"
+  iam_role_arn       = aws_iam_role.chatbot_role.arn
+  slack_channel_id   = "C0BB6V15RG9" # 알람을 보낼 슬랙 채널 ID 입력
+  slack_team_id      = "T0BB1N1H97X" # AWS 콘솔에 연동된 슬랙 워크스페이스 ID 입력
+
+  sns_topic_arns = [
+    aws_sns_topic.route53_healthcheck_alarm.arn,
+    aws_sns_topic.aws_primary_origin_healthcheck_alarm.arn,
+    aws_sns_topic.cloudfront_5xx_alarm.arn
+  ]
+}
 
 # Chatbot을 위한 기본 IAM Role
 resource "aws_iam_role" "chatbot_role" {
@@ -424,6 +438,11 @@ resource "aws_iam_role_policy_attachment" "chatbot_notification_policy" {
 resource "aws_sns_topic" "route53_healthcheck_alarm" {
   provider = aws.us_east_1
   name     = "${local.namespace}-route53-healthcheck-alarm"
+}
+
+resource "aws_sns_topic" "aws_primary_origin_healthcheck_alarm" {
+  provider = aws.us_east_1
+  name     = "${local.namespace}-aws-primary-origin-healthcheck-alarm"
 }
 
 resource "aws_sns_topic" "cloudfront_5xx_alarm" {
@@ -460,6 +479,31 @@ resource "aws_cloudwatch_metric_alarm" "route53_healthcheck_unhealthy" {
   insufficient_data_actions = [aws_sns_topic.route53_healthcheck_alarm.arn]
 }
 
+# AWS primary origin(ALB) 헬스체크 알람. 이 알람이 DR 판단의 직접 신호다.
+resource "aws_cloudwatch_metric_alarm" "aws_primary_origin_healthcheck_unhealthy" {
+  provider = aws.us_east_1
+
+  alarm_name          = "${local.namespace}-aws-primary-origin-healthcheck-unhealthy"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "HealthCheckStatus"
+  namespace           = "AWS/Route53"
+  period              = 60
+  statistic           = "Minimum"
+  threshold           = 1
+  treat_missing_data  = "breaching"
+
+  dimensions = {
+    HealthCheckId = module.platform.aws_primary_origin_health_check_id
+  }
+
+  alarm_description = "AWS primary origin health check ${module.platform.aws_primary_origin_health_check_id} is unhealthy."
+
+  alarm_actions             = [aws_sns_topic.aws_primary_origin_healthcheck_alarm.arn]
+  ok_actions                = [aws_sns_topic.aws_primary_origin_healthcheck_alarm.arn]
+  insufficient_data_actions = [aws_sns_topic.aws_primary_origin_healthcheck_alarm.arn]
+}
+
 # CloudFront 5xx error rate alarm
 resource "aws_cloudwatch_metric_alarm" "cloudfront_5xx_error_rate_high" {
   provider = aws.us_east_1
@@ -483,4 +527,89 @@ resource "aws_cloudwatch_metric_alarm" "cloudfront_5xx_error_rate_high" {
 
   alarm_actions = [aws_sns_topic.cloudfront_5xx_alarm.arn]
   ok_actions    = [aws_sns_topic.cloudfront_5xx_alarm.arn]
+}
+
+# ap-northeast-2 Region Healthcheck 관련
+resource "aws_cloudwatch_log_group" "aws_health_to_slack" {
+  name              = local.aws_health_to_slack_log_group
+  retention_in_days = 30
+}
+
+resource "aws_iam_role" "aws_health_to_slack" {
+  name = local.aws_health_to_slack_role_name
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "lambda.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "aws_health_to_slack_logs" {
+  name = "CloudWatchLogsWrite"
+  role = aws_iam_role.aws_health_to_slack.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ]
+      Resource = "${aws_cloudwatch_log_group.aws_health_to_slack.arn}:*"
+    }]
+  })
+}
+
+resource "aws_lambda_function" "aws_health_to_slack" {
+  function_name    = local.aws_health_to_slack_name
+  role             = aws_iam_role.aws_health_to_slack.arn
+  handler          = "aws_health_to_slack.handler"
+  runtime          = "python3.13"
+  filename         = data.archive_file.aws_health_to_slack.output_path
+  source_code_hash = data.archive_file.aws_health_to_slack.output_base64sha256
+  timeout          = 15
+  memory_size      = 128
+  architectures    = ["x86_64"]
+
+  environment {
+    variables = {
+      SLACK_WEBHOOK_URL = var.slack_webhook_url
+    }
+  }
+
+  depends_on = [
+    aws_cloudwatch_log_group.aws_health_to_slack,
+    aws_iam_role_policy.aws_health_to_slack_logs
+  ]
+}
+
+resource "aws_cloudwatch_event_rule" "aws_health_to_slack" {
+  name           = local.aws_health_to_slack_rule_name
+  description    = "Capture AWS Health events and route them to the Slack notifier Lambda."
+  event_bus_name = "default"
+  event_pattern = jsonencode({
+    source = ["aws.health"]
+  })
+}
+
+resource "aws_cloudwatch_event_target" "aws_health_to_slack" {
+  rule           = aws_cloudwatch_event_rule.aws_health_to_slack.name
+  event_bus_name = aws_cloudwatch_event_rule.aws_health_to_slack.event_bus_name
+  target_id      = "HealthToSlackTarget"
+  arn            = aws_lambda_function.aws_health_to_slack.arn
+}
+
+resource "aws_lambda_permission" "aws_health_to_slack_events" {
+  statement_id  = "aws-health-to-slack-seoul-HealthToSlackInvokePermission-FXhoqthNoWY3"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.aws_health_to_slack.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.aws_health_to_slack.arn
 }
