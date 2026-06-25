@@ -380,6 +380,11 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
   })
 }
 
+data "aws_lb" "petclinic_ingress" {
+  name = regex("^(.+)-[0-9]+\\.ap-northeast-2\\.elb\\.amazonaws\\.com$", module.workload.ingress_dns_name)[0]
+  depends_on = [module.workload]
+}
+
 # ==========================================
 # 1. 알림 채널 구성 (SNS & Chatbot)
 # ==========================================
@@ -410,7 +415,8 @@ resource "aws_chatbot_slack_channel_configuration" "slack_alarm" {
   sns_topic_arns = [
     aws_sns_topic.route53_healthcheck_alarm.arn,
     aws_sns_topic.aws_primary_origin_healthcheck_alarm.arn,
-    aws_sns_topic.cloudfront_5xx_alarm.arn
+    aws_sns_topic.cloudfront_5xx_alarm.arn,
+    aws_sns_topic.operations_alarm.arn
   ]
 }
 
@@ -448,6 +454,10 @@ resource "aws_sns_topic" "aws_primary_origin_healthcheck_alarm" {
 resource "aws_sns_topic" "cloudfront_5xx_alarm" {
   provider = aws.us_east_1
   name     = "${local.namespace}-cloudfront-5xx-alarm"
+}
+
+resource "aws_sns_topic" "operations_alarm" {
+  name = "${local.namespace}-operations-alarm"
 }
 
 # ==========================================
@@ -527,6 +537,111 @@ resource "aws_cloudwatch_metric_alarm" "cloudfront_5xx_error_rate_high" {
 
   alarm_actions = [aws_sns_topic.cloudfront_5xx_alarm.arn]
   ok_actions    = [aws_sns_topic.cloudfront_5xx_alarm.arn]
+}
+
+# RDS Alarm - Replica Lag Alarm
+resource "aws_cloudwatch_metric_alarm" "rds_replica_lag_high" {
+  alarm_name          = "${local.namespace}-rds-replica-lag-high"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "ReplicaLag"
+  namespace           = "AWS/RDS"
+  period              = 60
+  statistic           = "Maximum"
+  threshold           = 300
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    DBInstanceIdentifier = "petclinic-db-instance"
+  }
+
+  alarm_description = "RDS replica lag for petclinic-db-instance exceeded 300 seconds."
+  alarm_actions     = [aws_sns_topic.operations_alarm.arn]
+  ok_actions        = [aws_sns_topic.operations_alarm.arn]
+}
+
+# RDS Alarm - Free Storage Space Alarm
+resource "aws_cloudwatch_metric_alarm" "rds_free_storage_low" {
+  alarm_name          = "${local.namespace}-rds-free-storage-low"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "FreeStorageSpace"
+  namespace           = "AWS/RDS"
+  period              = 300
+  statistic           = "Average"
+  threshold           = 5368709120  # 5GB (bytes 단위)  
+  treat_missing_data  = "breaching"
+
+  dimensions = {
+    DBInstanceIdentifier = "petclinic-db-instance"
+  }
+
+  alarm_description = "RDS free storage for petclinic-db-instance is below 5 GiB."
+  alarm_actions     = [aws_sns_topic.operations_alarm.arn]
+  ok_actions        = [aws_sns_topic.operations_alarm.arn]
+}
+
+# EKS Alarm - Pod Restarts Alarm
+resource "aws_cloudwatch_metric_alarm" "eks_pod_restarts_high" {
+  alarm_name          = "${local.namespace}-eks-pod-restarts-high"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  threshold           = 5
+  treat_missing_data  = "notBreaching"
+
+  metric_query {
+    id          = "podrestarts"
+    expression  = "SELECT SUM(pod_number_of_container_restarts) FROM SCHEMA(\"ContainerInsights\", ClusterName, Namespace, PodName, FullPodName) WHERE ClusterName = '${module.workload.cluster_name}' AND Namespace = 'petclinic'"
+    label       = "Petclinic pod container restarts"
+    period      = 300
+    return_data = true
+  }
+
+  alarm_description = "Petclinic pods restarted more than 5 times in 5 minutes."
+  alarm_actions     = [aws_sns_topic.operations_alarm.arn]
+  ok_actions        = [aws_sns_topic.operations_alarm.arn]
+}
+
+# EKS Alarm - Failed Node Count Alarm
+resource "aws_cloudwatch_metric_alarm" "eks_failed_node_count_high" {
+  alarm_name          = "${local.namespace}-eks-failed-node-count-high"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 1
+  metric_name         = "cluster_failed_node_count"
+  namespace           = "ContainerInsights"
+  period              = 60
+  statistic           = "Maximum"
+  threshold           = 1
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    ClusterName = module.workload.cluster_name
+  }
+
+  alarm_description = "EKS cluster ${module.workload.cluster_name} has one or more failed nodes."
+  alarm_actions     = [aws_sns_topic.operations_alarm.arn]
+  ok_actions        = [aws_sns_topic.operations_alarm.arn]
+}
+
+# ALB Alarm - Target 5xx Responses Alarm
+resource "aws_cloudwatch_metric_alarm" "alb_target_5xx_high" {
+  alarm_name          = "${local.namespace}-alb-target-5xx-high"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "HTTPCode_Target_5XX_Count"
+  namespace           = "AWS/ApplicationELB"
+  period              = 300
+  statistic           = "Sum"
+  threshold           = 10
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    LoadBalancer = data.aws_lb.petclinic_ingress.arn_suffix
+  }
+
+  alarm_description = "ALB ${data.aws_lb.petclinic_ingress.name} target 5xx responses exceeded 10 in 5 minutes."
+  alarm_actions     = [aws_sns_topic.operations_alarm.arn]
+  ok_actions        = [aws_sns_topic.operations_alarm.arn]
 }
 
 # ap-northeast-2 Region Healthcheck 관련
