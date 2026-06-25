@@ -243,8 +243,8 @@ resource "aws_eks_node_group" "system" {
 
   scaling_config {
     desired_size = 2
-    max_size     = 3
-    min_size     = 0
+    max_size     = 6
+    min_size     = 2
   }
 
   # m 시리즈가 t 시리즈보다 안정적 (고정 성능이라 에이전트같은 상시 서비스가 안정적임)

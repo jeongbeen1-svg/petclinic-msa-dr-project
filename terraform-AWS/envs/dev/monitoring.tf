@@ -399,19 +399,6 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
 #   endpoint  = each.value # 리스트의 이메일이 하나씩 매핑됩니다.
 # }
 
-# Slack 연동을 위한 AWS Chatbot 설정
-# 주의: AWS Chatbot의 Workspace ID는 콘솔에서 최초 1회 Slack 인증을 진행해야 확인 가능합니다.
-resource "aws_chatbot_slack_channel_configuration" "slack_alarm" {
-  configuration_name = "route53_healthcheck-slack-alarm"
-  iam_role_arn       = aws_iam_role.chatbot_role.arn
-  slack_channel_id   = "C0BB6V15RG9" # 알람을 보낼 슬랙 채널 ID 입력
-  slack_team_id      = "T0BB1N1H97X" # AWS 콘솔에 연동된 슬랙 워크스페이스 ID 입력
-
-  sns_topic_arns = [
-    aws_sns_topic.route53_healthcheck_alarm.arn,
-    aws_sns_topic.cloudfront_5xx_alarm.arn
-  ]
-}
 
 # Chatbot을 위한 기본 IAM Role
 resource "aws_iam_role" "chatbot_role" {

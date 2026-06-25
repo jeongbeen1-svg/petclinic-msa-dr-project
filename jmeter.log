@@ -1,0 +1,20 @@
+2026-06-23 21:33:10,366 INFO o.a.j.u.JMeterUtils: Setting Locale to en_EN
+2026-06-23 21:33:10,403 INFO o.a.j.JMeter: Loading user properties from: /home/user/projects/final-project/apache-jmeter-5.6.3/bin/user.properties
+2026-06-23 21:33:10,404 INFO o.a.j.JMeter: Loading system properties from: /home/user/projects/final-project/apache-jmeter-5.6.3/bin/system.properties
+2026-06-23 21:33:10,412 INFO o.a.j.JMeter: Copyright (c) 1998-2024 The Apache Software Foundation
+2026-06-23 21:33:10,412 INFO o.a.j.JMeter: Version 5.6.3
+2026-06-23 21:33:10,413 INFO o.a.j.JMeter: java.version=17.0.19
+2026-06-23 21:33:10,413 INFO o.a.j.JMeter: java.vm.name=OpenJDK 64-Bit Server VM
+2026-06-23 21:33:10,413 INFO o.a.j.JMeter: os.name=Linux
+2026-06-23 21:33:10,413 INFO o.a.j.JMeter: os.arch=amd64
+2026-06-23 21:33:10,413 INFO o.a.j.JMeter: os.version=6.6.114.1-microsoft-standard-WSL2
+2026-06-23 21:33:10,413 INFO o.a.j.JMeter: file.encoding=UTF-8
+2026-06-23 21:33:10,413 INFO o.a.j.JMeter: java.awt.headless=null
+2026-06-23 21:33:10,413 INFO o.a.j.JMeter: Max memory     =1073741824
+2026-06-23 21:33:10,413 INFO o.a.j.JMeter: Available Processors =12
+2026-06-23 21:33:10,429 INFO o.a.j.JMeter: Default Locale=English (EN)
+2026-06-23 21:33:10,430 INFO o.a.j.JMeter: JMeter  Locale=English (EN)
+2026-06-23 21:33:10,430 INFO o.a.j.JMeter: JMeterHome=/home/user/projects/final-project/apache-jmeter-5.6.3
+2026-06-23 21:33:10,430 INFO o.a.j.JMeter: user.dir  =/home/user/projects/final-project
+2026-06-23 21:33:10,430 INFO o.a.j.JMeter: PWD       =/home/user/projects/final-project
+2026-06-23 21:33:10,431 INFO o.a.j.JMeter: IP: 127.0.1.1 Name: DESKTOP-JLVBA3P FullName: DESKTOP-JLVBA3P.localdomain

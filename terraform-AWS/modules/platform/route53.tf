@@ -39,6 +39,16 @@ resource "aws_acm_certificate_validation" "cert_us" {
   validation_record_fqdns = [for r in aws_route53_record.cert_validation_us : r.fqdn]
 }
 
+# AWS 리소스 상태 확인(Health Check) 생성
+resource "aws_route53_health_check" "aws_service" {
+  fqdn              = "www.${data.aws_route53_zone.ajean.name}"
+  type              = "HTTPS"
+  port              = 443
+  resource_path     = "/"
+  failure_threshold = "3"
+  request_interval  = "30"
+}
+
 # ==========================================
 # ⭐️ [신규 추가] Azure IP 우회용 Route53 레코드
 # ==========================================
@@ -87,10 +97,10 @@ resource "aws_cloudfront_distribution" "distribution" {
   origin {
     # --------------------------------==================================
     # [1단계 / 3단계 Failback] 평소 AWS 운영 및 장애 복구 시 아래 주석을 켜세요
-    #domain_name = local.ingress_dns_name 
+     domain_name = local.ingress_dns_name 
     
     # [2단계] Azure 이관 준비가 완료되면 위를 주석 처리하고 아래 주석을 켜세요
-     domain_name = aws_route53_record.azure_origin_dns.fqdn
+    # domain_name = aws_route53_record.azure_origin_dns.fqdn
     # --------------------------------==================================
 
     origin_id   = "my-app-origin"
