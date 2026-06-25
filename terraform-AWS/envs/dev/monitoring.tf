@@ -84,11 +84,11 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
         height = 6
         properties = {
           metrics = [
-            [{ "expression" : "SEARCH('{AWS/Route53,HealthCheckId} MetricName=\"HealthCheckStatus\"', 'Average', 60)", "label" : "DNS: &&-SCHEMA-REPLACEMENT-&&", "id" : "dns1" }]
-          ]
+            [{ "expression": "SEARCH('{AWS/Route53,HealthCheckId} MetricName=\"HealthCheckStatus\"', 'Average', 60)", "label": "DNS: &&-SCHEMA-REPLACEMENT-&&", "id": "dns1", "region": "us-east-1" }]
+        ]
           period = 60
           region = "ap-northeast-2"
-          title  = "🔥 1-1. DNS (Route 53) Health Check Status (1=Healthy, 0=Unhealthy)"
+          title  = "DNS (Route 53) Health Check Status (1=Healthy, 0=Unhealthy)"
           view   = "timeSeries"
         }
       },
@@ -106,7 +106,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           ]
           period = 60
           region = "ap-northeast-2"
-          title  = "🎯 1-2. ALB Target Response Code Distribution (2XX/4XX/5XX)"
+          title  = "ALB Target Response Code Distribution (2XX/4XX/5XX)"
           view   = "timeSeries"
         }
       },
@@ -122,7 +122,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           ]
           period = 60
           region = "ap-northeast-2"
-          title  = "🔥 1-3. EKS Cluster Failed Node Count (Cluster Health)"
+          title  = "EKS Cluster Failed Node Count (Cluster Health)"
           view   = "timeSeries"
         }
       },
@@ -142,7 +142,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           ]
           period = 60
           region = "ap-northeast-2"
-          title  = "🎯 2-1. Ingress Auto-Generated Targets: Healthy Host Count"
+          title  = "Ingress Auto-Generated Targets: Healthy Host Count"
           view   = "timeSeries"
         }
       },
@@ -158,7 +158,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           ]
           period = 60
           region = "ap-northeast-2"
-          title  = "🎯 2-2. Ingress Auto-Generated Targets: UnHealthy Host Count"
+          title  = "Ingress Auto-Generated Targets: UnHealthy Host Count"
           view   = "timeSeries"
         }
       },
@@ -174,7 +174,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           ]
           period = 60
           region = "ap-northeast-2"
-          title  = "📈 2-3. Ingress ALB Total Request Count (Traffic Rate)"
+          title  = "Ingress ALB Total Request Count (Traffic Rate)"
           view   = "timeSeries"
         }
       },
@@ -190,7 +190,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           ]
           period = 60
           region = "ap-northeast-2"
-          title  = "⏱️ 2-4. Target Response Time per Auto-Generated Ingress Group (Average)"
+          title  = "Target Response Time per Auto-Generated Ingress Group (Average)"
           view   = "timeSeries"
         }
       },
@@ -206,7 +206,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           ]
           period = 60
           region = "ap-northeast-2"
-          title  = "☸️ 2-5. EKS Worker Nodes CPU Utilization (%)"
+          title  = "EKS Worker Nodes CPU Utilization (%)"
           view   = "timeSeries"
         }
       },
@@ -222,7 +222,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           ]
           period = 60
           region = "ap-northeast-2"
-          title  = "☸️ 2-6. EKS Worker Nodes Memory Utilization (%)"
+          title  = "EKS Worker Nodes Memory Utilization (%)"
           view   = "timeSeries"
         }
       },
@@ -238,7 +238,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           ]
           period = 60
           region = "ap-northeast-2"
-          title  = "☸️ 2-7. EKS Pod Container Restart Count (Detecting CrashLoopBackOff)"
+          title  = "EKS Pod Container Restart Count (Detecting CrashLoopBackOff)"
           view   = "timeSeries"
         }
       },
@@ -258,7 +258,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           ]
           period = 60
           region = "ap-northeast-2"
-          title  = "🚀 3-1. Application Pods CPU Utilization (By Microservices)"
+          title  = "Application Pods CPU Utilization (By Microservices)"
           view   = "timeSeries"
         }
       },
@@ -274,7 +274,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           ]
           period = 60
           region = "ap-northeast-2"
-          title  = "🚀 3-2. Application Pods Memory Utilization (By Microservices)"
+          title  = "Application Pods Memory Utilization (By Microservices)"
           view   = "timeSeries"
         }
       },
@@ -290,7 +290,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           ]
           period = 60
           region = "ap-northeast-2"
-          title  = "🗄️ 3-3. Database (RDS) CPU Utilization (%)"
+          title  = "Database (RDS) CPU Utilization (%)"
           view   = "timeSeries"
         }
       },
@@ -306,7 +306,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           ]
           period = 60
           region = "ap-northeast-2"
-          title  = "🗄️ 3-4. Database Connection Count (Connection Pool Monitor)"
+          title  = "Database Connection Count (Connection Pool Monitor)"
           view   = "timeSeries"
         }
       },
@@ -322,7 +322,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           ]
           period = 60
           region = "ap-northeast-2"
-          title  = "🗄️ 3-5. RDS Cross-Region Replication Lag (DR Metric)"
+          title  = "RDS Cross-Region Replication Lag (DR Metric)"
           view   = "timeSeries"
         }
       },
@@ -338,7 +338,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           ]
           period = 60
           region = "ap-northeast-2"
-          title  = "🌐 4-1. ALB Transactions Per Second"
+          title  = "ALB Transactions Per Second"
           view   = "timeSeries"
         }
       },
@@ -355,7 +355,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           ]
           period = 60
           region = "ap-northeast-2"
-          title  = "☸️ 4-2. EKS Node Group (ASG) Desired vs Running Capacity"
+          title  = "EKS Node Group (ASG) Desired vs Running Capacity"
           view   = "timeSeries"
         }
       },
@@ -372,7 +372,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
           ]
           period = 60
           region = "ap-northeast-2"
-          title  = "🗄️ 4-3. RDS Memory & Storage Headroom"
+          title  = "RDS Memory & Storage Headroom"
           view   = "timeSeries"
         }
       }
@@ -494,10 +494,10 @@ resource "aws_cloudwatch_metric_alarm" "aws_primary_origin_healthcheck_unhealthy
   treat_missing_data  = "breaching"
 
   dimensions = {
-    HealthCheckId = module.platform.aws_primary_origin_health_check_id
+    HealthCheckId = module.platform.route53_health_check_id
   }
 
-  alarm_description = "AWS primary origin health check ${module.platform.aws_primary_origin_health_check_id} is unhealthy."
+  alarm_description = "AWS primary origin health check ${module.platform.route53_health_check_id} is unhealthy."
 
   alarm_actions             = [aws_sns_topic.aws_primary_origin_healthcheck_alarm.arn]
   ok_actions                = [aws_sns_topic.aws_primary_origin_healthcheck_alarm.arn]

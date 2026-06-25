@@ -99,8 +99,8 @@ resource "helm_release" "cluster_autoscaler" {
         "expander"                      = "least-waste"
         # 테스트용 속도 개선 옵션
         "scan-interval"                    = "10s"
-        "scale-down-unneeded-time"         = "3m"
-        "scale-down-delay-after-add"       = "3m"
+        "scale-down-unneeded-time"         = "7m"
+        "scale-down-delay-after-add"       = "7m"
         "scale-down-utilization-threshold" = "0.5"
       }
 
