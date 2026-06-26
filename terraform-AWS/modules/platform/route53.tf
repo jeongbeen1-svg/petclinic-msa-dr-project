@@ -1,5 +1,5 @@
 # ==========================================
-# 1. ACM 인증서 생성 및 Route53 검증 설정
+# ACM 인증서 생성 및 Route53 검증 설정
 # ==========================================
 
 # ACM 인증서 생성 및 요청 (us-east-1)
@@ -50,7 +50,7 @@ resource "aws_route53_health_check" "aws_service" {
 }
 
 # ==========================================
-# ⭐️ [신규 추가] Azure IP 우회용 Route53 레코드
+# Azure IP 우회용 Route53 레코드
 # ==========================================
 resource "aws_route53_record" "azure_origin_dns" {
   zone_id = data.aws_route53_zone.ajean.zone_id
@@ -93,13 +93,13 @@ resource "aws_cloudfront_distribution" "distribution" {
   default_root_object = "index.html"
   aliases             = ["www.ajean.shop"]
 
-  # 📍 [오리진 1] 메인 백엔드 (이관 단계에 따라 아래 주석을 켜고 끄세요)
+  # [오리진 1] 메인 백엔드 (이관 단계에 따라 아래 주석을 켜고 끄기)
   origin {
     # --------------------------------==================================
-    # [1단계 / 3단계 Failback] 평소 AWS 운영 및 장애 복구 시 아래 주석을 켜세요
+    # [1단계 / 3단계 Failback] 평소 AWS 운영 및 장애 복구 시 아래 주석을 킴
     domain_name = local.ingress_dns_name
 
-    # [2단계] Azure 이관 준비가 완료되면 위를 주석 처리하고 아래 주석을 켜세요
+    # [2단계] Azure 이관 준비가 완료되면 위를 주석 처리하고 아래 주석을 킴
     # domain_name = aws_route53_record.azure_origin_dns.fqdn
     # --------------------------------==================================
 
@@ -168,5 +168,8 @@ resource "aws_cloudfront_distribution" "distribution" {
     geo_restriction { restriction_type = "none" }
   }
 
-  depends_on = [aws_acm_certificate_validation.cert_us]
+  depends_on = [
+    aws_acm_certificate_validation.cert_us,
+    aws_cloudfront_origin_access_control.s3_oac
+  ]
 }
