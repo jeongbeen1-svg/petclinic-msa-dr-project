@@ -55,7 +55,7 @@ variable "whatap_license" {
 # ap-northeast-2 Region Healthcheck 관련
 variable "slack_webhook_url" {
   description = "Slack Incoming Webhook URL for AWS Health events."
-  default = "https://hooks.slack.com/services/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"
+  default     = "https://hooks.slack.com/services/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"
   type        = string
   sensitive   = true
 }

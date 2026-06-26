@@ -97,18 +97,18 @@ resource "aws_cloudfront_distribution" "distribution" {
   origin {
     # --------------------------------==================================
     # [1단계 / 3단계 Failback] 평소 AWS 운영 및 장애 복구 시 아래 주석을 켜세요
-     domain_name = local.ingress_dns_name 
-    
+    domain_name = local.ingress_dns_name
+
     # [2단계] Azure 이관 준비가 완료되면 위를 주석 처리하고 아래 주석을 켜세요
     # domain_name = aws_route53_record.azure_origin_dns.fqdn
     # --------------------------------==================================
 
-    origin_id   = "my-app-origin"
+    origin_id = "my-app-origin"
 
     custom_origin_config {
       http_port              = 80
       https_port             = 443
-      origin_protocol_policy = "http-only" 
+      origin_protocol_policy = "http-only"
       origin_ssl_protocols   = ["TLSv1.2"]
     }
   }
@@ -121,7 +121,7 @@ resource "aws_cloudfront_distribution" "distribution" {
     custom_origin_config {
       http_port              = 80
       https_port             = 443
-      origin_protocol_policy = "http-only" 
+      origin_protocol_policy = "http-only"
       origin_ssl_protocols   = ["TLSv1.2"]
     }
   }
@@ -131,31 +131,31 @@ resource "aws_cloudfront_distribution" "distribution" {
     origin_id = "failover-origin-group"
 
     failover_criteria {
-      status_codes = [500, 502, 503, 504] 
+      status_codes = [500, 502, 503, 504]
     }
 
     member {
-      origin_id = "my-app-origin"       # 1순위 타겟 (AWS 혹은 Azure)
+      origin_id = "my-app-origin" # 1순위 타겟 (AWS 혹은 Azure)
     }
     member {
-      origin_id = "S3-Website-Origin"   # 2순위 타겟 (S3 대기실)
+      origin_id = "S3-Website-Origin" # 2순위 타겟 (S3 대기실)
     }
   }
 
   # 라우팅 룰 설정 (오리진 그룹 지정)
   default_cache_behavior {
-    allowed_methods  = ["GET", "HEAD"] 
+    allowed_methods  = ["GET", "HEAD"]
     cached_methods   = ["GET", "HEAD"]
-    target_origin_id = "failover-origin-group" 
+    target_origin_id = "failover-origin-group"
 
     forwarded_values {
       query_string = true
-      headers      = ["*"] 
-      cookies { 
-        forward = "all" 
+      headers      = ["*"]
+      cookies {
+        forward = "all"
       }
     }
-    viewer_protocol_policy = "redirect-to-https" 
+    viewer_protocol_policy = "redirect-to-https"
   }
 
   viewer_certificate {

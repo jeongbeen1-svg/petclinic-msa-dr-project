@@ -14,9 +14,9 @@ on:
         required: true
   workflow_dispatch:
 
-  push:
-    branches: [main]
-    paths: ["terraform-AWS/**"]
+  # push:
+  #   branches: [main]
+  #   paths: ["terraform-AWS/**"]
 
 permissions:
   contents: read

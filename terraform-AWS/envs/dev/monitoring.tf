@@ -84,8 +84,8 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
         height = 6
         properties = {
           metrics = [
-            [{ "expression": "SEARCH('{AWS/Route53,HealthCheckId} MetricName=\"HealthCheckStatus\"', 'Average', 60)", "label": "DNS: &&-SCHEMA-REPLACEMENT-&&", "id": "dns1", "region": "us-east-1" }]
-        ]
+            [{ "expression" : "SEARCH('{AWS/Route53,HealthCheckId} MetricName=\"HealthCheckStatus\"', 'Average', 60)", "label" : "DNS: &&-SCHEMA-REPLACEMENT-&&", "id" : "dns1", "region" : "us-east-1" }]
+          ]
           period = 60
           region = "ap-northeast-2"
           title  = "DNS (Route 53) Health Check Status (1=Healthy, 0=Unhealthy)"
@@ -381,7 +381,7 @@ resource "aws_cloudwatch_dashboard" "integrated_monitoring_dashboard" {
 }
 
 data "aws_lb" "petclinic_ingress" {
-  name = regex("^(.+)-[0-9]+\\.ap-northeast-2\\.elb\\.amazonaws\\.com$", module.workload.ingress_dns_name)[0]
+  name       = regex("^(.+)-[0-9]+\\.ap-northeast-2\\.elb\\.amazonaws\\.com$", module.workload.ingress_dns_name)[0]
   depends_on = [module.workload]
 }
 
@@ -569,7 +569,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_free_storage_low" {
   namespace           = "AWS/RDS"
   period              = 300
   statistic           = "Average"
-  threshold           = 5368709120  # 5GB (bytes 단위)  
+  threshold           = 5368709120 # 5GB (bytes 단위)  
   treat_missing_data  = "breaching"
 
   dimensions = {
