@@ -97,7 +97,7 @@ resource "aws_cloudfront_distribution" "distribution" {
   origin {
     # --------------------------------==================================
     # [1단계 / 3단계 Failback] 평소 AWS 운영 및 장애 복구 시 아래 주석을 킴
-    domain_name = domain_name = replace(local.ingress_dns_name, "/^https?:\\/\\//", "")
+    domain_name = replace(local.ingress_dns_name, "/^https?:\\/\\//", "")
 
     # [2단계] Azure 이관 준비가 완료되면 위를 주석 처리하고 아래 주석을 킴
     # domain_name = aws_route53_record.azure_origin_dns.fqdn
