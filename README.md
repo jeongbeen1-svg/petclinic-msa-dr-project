@@ -41,7 +41,8 @@ Spring PetClinic 애플리케이션을 기반으로, **AWS Active + Azure Warm S
 ---
 
 ## 🏗 아키텍처 설계 (Architecture)
-<img width="721" height="733" alt="최종프로젝트 아키텍처 다이어그램" src="https://github.com/user-attachments/assets/5f0f2b7d-a1da-471e-902d-b2a389e12680" />
+<img width="721" height="733" alt="최종프로젝트 아키텍처 다이어그램" src="https://github.com/user-attachments/assets/20be33cd-e988-4e33-86d4-1b7675014207" />
+
 
 ### Key Architectural Decisions
 
